@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
 
 namespace BlazorServer.Data;
@@ -15,15 +16,24 @@ public class ApplicationUser : IdentityUser
 
     public List<Hobby>? Hobbies { get; set; }
 
+    [ForeignKey(DbTableNames.Hobby)]
+    public int FavoriteHobby1ID { get; set; }
+
     /// <summary>
     /// This user's favorite hobby.
     /// </summary>
     public Hobby? FavoriteHobby1 { get; set; }
 
+    [ForeignKey(DbTableNames.Hobby)]
+    public int FavoriteHobby2ID { get; set; }
+
     /// <summary>
     /// This user's 2nd favorite hobby.
     /// </summary>
     public Hobby? FavoriteHobby2 { get; set; }
+
+    [ForeignKey(DbTableNames.Hobby)]
+    public int FavoriteHobby3ID { get; set; }
 
     /// <summary>
     /// This user's 3rd favorite hobby.
