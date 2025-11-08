@@ -5,7 +5,7 @@ namespace BlazorServer.Data;
 public class Chat
 {
     [Key]
-    public int ChatID;
+    public int ChatId { get; set; }
 
-    public required List<ApplicationUser> UserIds;
+    public required List<ApplicationUser> UserIds { get; set; }
 }
