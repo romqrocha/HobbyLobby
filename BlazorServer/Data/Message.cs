@@ -12,10 +12,10 @@ public class Message
     [ForeignKey(DbTableNames.ApplicationUser)]
     public required string SentUserId { get; set; }
 
+    public required ApplicationUser SentUser { get; set; }
+
     [ForeignKey(DbTableNames.Chat)]
     public required int ChatID { get; set; }
-
-    public required ApplicationUser SentUser { get; set; }
 
     public required Chat Chat { get; set; }
 
