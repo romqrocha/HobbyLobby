@@ -22,7 +22,7 @@ public class ApplicationUser : IdentityUser
     /// <summary>
     /// This user's favorite hobby.
     /// </summary>
-    // public Hobby? FavoriteHobby1 { get; set; }
+    public Hobby? FavoriteHobby1 { get; set; }
 
     [ForeignKey(DbTableNames.Hobby)]
     public int FavoriteHobby2Id { get; set; }
@@ -30,7 +30,7 @@ public class ApplicationUser : IdentityUser
     /// <summary>
     /// This user's 2nd favorite hobby.
     /// </summary>
-    // public Hobby? FavoriteHobby2 { get; set; }
+    public Hobby? FavoriteHobby2 { get; set; }
 
     [ForeignKey(DbTableNames.Hobby)]
     public int FavoriteHobby3Id { get; set; }
@@ -38,7 +38,7 @@ public class ApplicationUser : IdentityUser
     /// <summary>
     /// This user's 3rd favorite hobby.
     /// </summary>
-    // public Hobby? FavoriteHobby3 { get; set; }
+    public Hobby? FavoriteHobby3 { get; set; }
 
     public string? BcitEmail { get; set; }
 

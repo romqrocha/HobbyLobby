@@ -13,4 +13,10 @@ public class Hobby
 
     public List<ApplicationUser>? Users { get; set; }
 
+    public List<ApplicationUser>? Favorite1Users { get; set; }
+
+    public List<ApplicationUser>? Favorite2Users { get; set; }
+
+    public List<ApplicationUser>? Favorite3Users { get; set; }
+
 }
