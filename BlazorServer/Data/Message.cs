@@ -9,15 +9,15 @@ public class Message
     [Key]
     public int MessageId { get; set; }
 
-    [ForeignKey("ApplicationUser")]
+    [ForeignKey(DbTableNames.ApplicationUser)]
     public required string SentUserId { get; set; }
 
-    [ForeignKey("ApplicationUser")]
-    public required string ReceivedUserId { get; set; }
+    [ForeignKey(DbTableNames.Chat)]
+    public required int ChatID { get; set; }
 
     public required ApplicationUser SentUser { get; set; }
 
-    public required ApplicationUser ReceivedUser { get; set; }
+    public required Chat Chat { get; set; }
 
     public required string MessageContent { get; set; }
 
