@@ -6,18 +6,18 @@ namespace BlazorServer.Data;
 // Add profile data for application users by adding properties to the ApplicationUser class
 public class ApplicationUser : IdentityUser
 {
-    public required string DisplayName { get; set; }
+    public string? DisplayName { get; set; }
 
     public string? ProfilePictureURL { get; set; }
 
     public string? BannerURL { get; set; }
 
-    public required string Country { get; set; }
+    public string? Country { get; set; }
 
     public List<Hobby>? Hobbies { get; set; }
 
     [ForeignKey(DbTableNames.Hobby)]
-    public int FavoriteHobby1Id { get; set; }
+    public int? FavoriteHobby1Id { get; set; }
 
     /// <summary>
     /// This user's favorite hobby.
@@ -25,7 +25,7 @@ public class ApplicationUser : IdentityUser
     public Hobby? FavoriteHobby1 { get; set; }
 
     [ForeignKey(DbTableNames.Hobby)]
-    public int FavoriteHobby2Id { get; set; }
+    public int? FavoriteHobby2Id { get; set; }
 
     /// <summary>
     /// This user's 2nd favorite hobby.
@@ -33,7 +33,7 @@ public class ApplicationUser : IdentityUser
     public Hobby? FavoriteHobby2 { get; set; }
 
     [ForeignKey(DbTableNames.Hobby)]
-    public int FavoriteHobby3Id { get; set; }
+    public int? FavoriteHobby3Id { get; set; }
 
     /// <summary>
     /// This user's 3rd favorite hobby.
