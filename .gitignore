@@ -57,3 +57,6 @@ nunit-*.xml
 
 # csharpier local config
 .config 
+
+# .env
+*.env

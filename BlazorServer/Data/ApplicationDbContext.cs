@@ -36,5 +36,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         // Unique BCIT email
         modelBuilder.Entity<ApplicationUser>().HasIndex(u => u.BcitEmail).IsUnique();
+
+        // Unique email
+        modelBuilder.Entity<ApplicationUser>().HasIndex(u => u.Email).IsUnique();
     }
 }
