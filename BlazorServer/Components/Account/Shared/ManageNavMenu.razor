@@ -3,10 +3,29 @@
 
 @inject SignInManager<ApplicationUser> SignInManager
 
-<ul class="nav nav-pills flex-column">
+
+<h4 class="flex-column">Customization</h4>
+
+<ul class="nav nav-pills flex-column mb-3">
     <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage" Match="NavLinkMatch.All">Profile</NavLink>
+        <NavLink class="nav-link" href="Account/Manage" Match="NavLinkMatch.All">Identity</NavLink>
     </li>
+    <li class="nav-item">
+        <NavLink class="nav-link" href="Account/Manage/ProfilePicture">Profile Picture</NavLink>
+    </li>
+    <li class="nav-item">
+        <NavLink class="nav-link" href="Account/Manage/Banner">Banner</NavLink>
+    </li>
+    <li class="nav-item">
+        <NavLink class="nav-link" href="Account/Manage/Hobbies">Hobbies</NavLink>
+    </li>
+</ul>
+
+<hr />
+
+<h4 class="flex-column">Account</h4>
+
+<ul class="nav nav-pills flex-column">
     <li class="nav-item">
         <NavLink class="nav-link" href="Account/Manage/Email">Email</NavLink>
     </li>
