@@ -11,29 +11,30 @@
     <div class="input-group">
         <span class="input-group-text" id="hobby-search-addon"><span class="bi bi-search"></span></span>
         <input type="text" class="form-control" placeholder="Search for hobbies..." aria-label="Search"
-            aria-describedby="hobby-search-addon">
+            aria-describedby="hobby-search-addon" @bind-value="SearchText" @bind-value:event="oninput">
     </div>
+
 
     <div id="myHobbies" class="d-flex justify-content-around">
         @foreach (var hobby in myHobbies)
-            {
-                <button 
-                    @onclick="(() => RemoveHobby(hobby))"
-                    class="btn rounded-pill @(myHobbies.Contains(hobby) ? myHobbyClass : otherHobbyClass)">
-                    @hobby.HobbyName
-                </button >
-            }
+        {
+            <button @onclick="(() => RemoveHobby(hobby))"
+                class="btn rounded-pill @(myHobbies.Contains(hobby) ? myHobbyClass : otherHobbyClass)">
+                @hobby.HobbyName
+            </button>
+        }
     </div>
 
-    <div id="otherHobbies" class="d-flex justify-content-around ">
-        @foreach (var hobby in otherHobbies)
-            {
-                <button 
-                    @onclick="(() => AddHobby(hobby))"
-                    class="btn rounded-pill @(otherHobbies.Contains(hobby) ? otherHobbyClass : myHobbyClass)">
-                    @hobby.HobbyName
-                </button >
-            }
+
+    <div class="d-flex justify-content-around">
+        @foreach (var hobby in filteredHobbies)
+        {
+            <button @onclick="(() => AddHobby(hobby))"
+                class="btn rounded-pill @(otherHobbies.Contains(hobby) ? otherHobbyClass : myHobbyClass)">
+                @hobby.HobbyName
+            </button>
+        }
+
     </div>
 
 </div>
@@ -41,24 +42,35 @@
 
 @code {
 
-    // Most of the code here will need to be updated to take in Hobby objects instead of strings
-
     private string myHobbyClass = "btn rounded-pill my-hobby";
 
     private string otherHobbyClass = "btn rounded-pill other-hobby";
 
-    private List<Hobby> myHobbies = new List<Hobby> { new Hobby {HobbyId = 1, HobbyName = "Soccer" }, new Hobby {HobbyId = 2, HobbyName = "Piano" } };
+    // hardcoded hobby data
+    private List<Hobby> myHobbies = new List<Hobby> { new Hobby {HobbyId = 1, HobbyName = "Soccer" }, new Hobby {HobbyId =
+2, HobbyName = "Piano" } };
 
-    private List<Hobby> otherHobbies = new List<Hobby> { new Hobby {HobbyId = 3, HobbyName = "Painting" }, new Hobby {HobbyId = 4, HobbyName = "Running" } };
+    private List<Hobby> otherHobbies = new List<Hobby> { new Hobby {HobbyId = 3, HobbyName = "Painting" }, new Hobby
+{HobbyId = 4, HobbyName = "Running" } };
 
-    private void RemoveHobby(Hobby hobby){
+    private void RemoveHobby(Hobby hobby)
+    {
         myHobbies.Remove(hobby);
         otherHobbies.Add(hobby);
     }
 
-    private void AddHobby(Hobby hobby){
+    private void AddHobby(Hobby hobby)
+    {
         otherHobbies.Remove(hobby);
         myHobbies.Add(hobby);
     }
+
+    // Logic for searching
+    public string SearchText = "";
+
+    private List<Hobby> filteredHobbies => otherHobbies.Where(
+    hobby => hobby.HobbyName.ToLower().Contains(SearchText.ToLower())
+    ).ToList();
+
 
 }
