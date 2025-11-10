@@ -1,4 +1,4 @@
-﻿@page "/Account/Manage"
+﻿@page "/Account/Manage/Banner"
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
@@ -16,24 +16,18 @@
 
 <div class="row">
     <div class="col-xl-6">
-        <h3>Identity</h3>
+        <h3>Banner</h3>
         <StatusMessage />
         <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <input type="text" value="@username" id="username" class="form-control" placeholder="Choose your username" disabled />
-                <label for="username" class="form-label">Username</label>
+            <div class="mb-3">
+                <img src="@shownPfpUrl" class="rounded img-fluid" alt="Your banner"/>
             </div>
             <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.DisplayName" id="Input.DisplayName" class="form-control" placeholder="Choose your display name" />
-                <label for="Input.DisplayName" class="form-label">Display name</label>
-                <ValidationMessage For="() => Input.DisplayName" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Country" id="Input.Country" class="form-control" placeholder="Choose your country" />
-                <label for="Input.Country" class="form-label">Country</label>
-                <ValidationMessage For="() => Input.Country" class="text-danger" />
+                <InputText @bind-Value="Input.BannerUrl" id="Input.BannerUrl" class="form-control" placeholder="Link to your Banner" />
+                <label for="Input.BannerUrl" class="form-label">Banner URL</label>
+                <ValidationMessage For="() => Input.BannerUrl" class="text-danger" />
             </div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
         </EditForm>
@@ -42,9 +36,9 @@
 
 @code {
     private ApplicationUser user = default!;
-    private string? username;
-    private string? displayName;
-    private string? country;
+
+    private string? shownPfpUrl;
+    private string? cachedPfpUrl;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -55,26 +49,20 @@
     protected override async Task OnInitializedAsync()
     {
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        cachedPfpUrl = user.BannerURL;
 
-        username = user.UserName;
-        displayName = user.DisplayName;
-        country = user.Country;
-
-        Input.DisplayName ??= displayName;
-        Input.Country ??= country;
+        Input.BannerUrl ??= cachedPfpUrl;
+        shownPfpUrl = Input.BannerUrl ?? "banner/bg3.png";
     }
 
     private async Task OnValidSubmitAsync()
     {
         List<Action<ApplicationUser>> updateQueue = new();
 
-        if (Input.DisplayName != displayName) 
+        if (Input.BannerUrl != cachedPfpUrl) 
         {
-            updateQueue.Add(dbUser => dbUser.DisplayName = Input.DisplayName);
-        }
-        if (Input.Country != country) 
-        {
-            updateQueue.Add(dbUser => dbUser.Country = Input.Country);
+            updateQueue.Add(dbUser => dbUser.BannerURL = Input.BannerUrl);
+            shownPfpUrl = cachedPfpUrl;
         }
 
         await UpdateDbUser(updateQueue);
@@ -94,7 +82,7 @@
             }
             catch (Exception ex) when (ex is DbUpdateException or NullReferenceException)
             {
-                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to update identity.", HttpContext);
+                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to update banner.", HttpContext);
             }
         }
 
@@ -104,12 +92,8 @@
 
     private sealed class InputModel
     {
-        [DataType(DataType.Text)]
-        [Display(Name = "Display Name")]
-        public string? DisplayName { get; set; }
-
-        [DataType(DataType.Text)]
-        [Display(Name = "Country")]
-        public string? Country { get; set; }
+        [DataType(DataType.ImageUrl)]
+        [Display(Name = "Banner URL")]
+        public string? BannerUrl { get; set; }
     }
 }

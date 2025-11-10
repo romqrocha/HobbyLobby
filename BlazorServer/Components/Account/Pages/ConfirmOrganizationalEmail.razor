@@ -1,0 +1,80 @@
+﻿@page "/Account/ConfirmOrganizationalEmail"
+
+@using System.Text
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using BlazorServer.Data
+@using Microsoft.EntityFrameworkCore
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityRedirectManager RedirectManager
+@inject ApplicationDbContext Db
+
+<PageTitle>Confirm Organizational Email</PageTitle>
+
+<h1>Confirm your BCIT email</h1>
+<StatusMessage Message="@statusMessage" />
+
+@code {
+    private string? statusMessage;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    private string? UserId { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Code { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (UserId is null || Code is null)
+        {
+            statusMessage = $"Error confirming your email | ID: {UserId} | Code: {Code}";
+            return;
+        }
+
+        var user = await UserManager.FindByIdAsync(UserId);
+        if (user is null)
+        {
+            HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+            statusMessage = $"Error loading user with ID {UserId}";
+        }
+        else
+        {
+            var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Code));
+            var result = await ConfirmBcitEmailAsync(user, code);
+            statusMessage = result.Succeeded ? "Thank you for confirming your email." : "Error confirming your email.";
+        }
+    }
+
+    /// <summary>
+    /// I had to rewrite this method from UserManager lol
+    /// </summary>
+    private async Task<IdentityResult> ConfirmBcitEmailAsync(ApplicationUser user, string token) 
+    {
+        if (user == null) throw new NullReferenceException();
+
+        if (!await UserManager.VerifyUserTokenAsync(user, 
+            UserManager.Options.Tokens.EmailConfirmationTokenProvider, 
+            UserManager<ApplicationUser>.ConfirmEmailTokenPurpose, 
+            token).ConfigureAwait(false))
+        {
+            return IdentityResult.Failed(UserManager.ErrorDescriber.InvalidToken());
+        }
+        
+        try {
+            ApplicationUser dbUser = await Db.Users.FindAsync(user.Id) ?? throw new NullReferenceException();
+            dbUser.BcitEmailIsVerified = true;
+
+            await Db.SaveChangesAsync();
+        }
+        catch (Exception ex) when (ex is DbUpdateException or NullReferenceException)
+        {
+            return IdentityResult.Failed(UserManager.ErrorDescriber.ConcurrencyFailure());
+        }
+        
+        return IdentityResult.Success;
+    }
+}

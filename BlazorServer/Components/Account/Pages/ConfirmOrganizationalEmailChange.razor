@@ -1,0 +1,94 @@
+﻿@page "/Account/ConfirmOrganizationalEmailChange"
+
+@using System.Text
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using BlazorServer.Data
+@using Microsoft.EntityFrameworkCore
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityRedirectManager RedirectManager
+@inject ApplicationDbContext Db
+
+<PageTitle>Confirm Organizational email change</PageTitle>
+
+<h1>Confirm BCIT email change</h1>
+
+<StatusMessage Message="@message" />
+
+@code {
+    private string? message;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    private string? UserId { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Email { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Code { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (UserId is null || Email is null || Code is null)
+        {
+            RedirectManager.RedirectToWithStatus(
+                "Account/Login", "Error: Invalid email change confirmation link.", HttpContext);
+        }
+
+        var user = await UserManager.FindByIdAsync(UserId);
+        if (user is null)
+        {
+            message = "Unable to find user with Id '{userId}'";
+            return;
+        }
+
+        var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Code));
+        var result = await UserManager.ChangeEmailAsync(user, Email, code);
+        if (!result.Succeeded)
+        {
+            message = "Error changing email.";
+            return;
+        }
+
+        await SignInManager.RefreshSignInAsync(user);
+        message = "Thank you for confirming your email change.";
+    }
+
+
+    /// <summary>
+    /// Had to rewrite this from UserManager (once again)
+    /// </summary>
+    private async Task<IdentityResult> ChangeBcitEmailAsync(ApplicationUser user, string newEmail, string token) 
+    {
+        if (user == null) throw new NullReferenceException();
+
+        // Make sure the token is valid and the stamp matches
+        if (!await UserManager.VerifyUserTokenAsync(user, 
+        UserManager.Options.Tokens.ChangeEmailTokenProvider, 
+        UserManager<ApplicationUser>.GetChangeEmailTokenPurpose(newEmail), 
+        token).ConfigureAwait(false))
+        {
+            return IdentityResult.Failed(UserManager.ErrorDescriber.InvalidToken());
+        }
+
+        try {
+            ApplicationUser dbUser = await Db.Users.FindAsync(user.Id) ?? throw new NullReferenceException();
+            dbUser.BcitEmail = newEmail;
+            dbUser.BcitEmailIsVerified = true;
+
+            await UserManager.UpdateSecurityStampAsync(user).ConfigureAwait(false);
+            await Db.SaveChangesAsync();
+        }
+        catch (Exception ex) when (ex is DbUpdateException or NullReferenceException)
+        {
+            return IdentityResult.Failed(UserManager.ErrorDescriber.ConcurrencyFailure());
+        }
+        
+        return IdentityResult.Success;
+    }
+}

@@ -1,0 +1,131 @@
+﻿@page "/Account/Manage/Hobbies"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using BlazorServer.Data
+@using Microsoft.AspNetCore.Identity.EntityFrameworkCore
+@using Microsoft.EntityFrameworkCore
+@using System.Data.Common
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+@inject ApplicationDbContext Db
+
+<PageTitle>Profile</PageTitle>
+
+<div class="row">
+    <div class="col-xl-6">
+        <h3>Your Top 3 (WIP)</h3>
+        <StatusMessage />
+        <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.FavoriteHobby1" id="Input.FavoriteHobby1" class="form-control" placeholder="Your #1 hobby" />
+                <label for="Input.FavoriteHobby1" class="form-label">#1 Hobby</label>
+                <ValidationMessage For="() => Input.FavoriteHobby1" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.FavoriteHobby2" id="Input.FavoriteHobby2" class="form-control" placeholder="Your #2 hobby" />
+                <label for="Input.FavoriteHobby2" class="form-label">#2 Hobby</label>
+                <ValidationMessage For="() => Input.FavoriteHobby2" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.FavoriteHobby3" id="Input.FavoriteHobby3" class="form-control" placeholder="Your #3 hobby" />
+                <label for="Input.FavoriteHobby3" class="form-label">#3 Hobby</label>
+                <ValidationMessage For="() => Input.FavoriteHobby3" class="text-danger" />
+            </div>
+            <button type="submit" class="w-100 btn btn-lg btn-primary mb-3">Save</button>
+            <div>
+                <a href="../../../hobby">Want to add or remove hobbies?</a>
+            </div>
+
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private ApplicationUser user = default!;
+    private Hobby? cachedFavHobby1;
+    private Hobby? cachedFavHobby2;
+    private Hobby? cachedFavHobby3;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+
+        cachedFavHobby1 = user.FavoriteHobby1;
+        cachedFavHobby2 = user.FavoriteHobby2;
+        cachedFavHobby3 = user.FavoriteHobby3;
+
+        Input.FavoriteHobby1 ??= cachedFavHobby1?.HobbyName;
+        Input.FavoriteHobby2 ??= cachedFavHobby2?.HobbyName;
+        Input.FavoriteHobby3 ??= cachedFavHobby3?.HobbyName;
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        List<Action<ApplicationUser>> updateQueue = new();
+
+        // Need support for adding hobbies to db
+
+        @* if (Input.FavoriteHobby1 != cachedFavHobby1?.HobbyName) 
+        {
+            updateQueue.Add(dbUser => dbUser.FavoriteHobby1 = Input.FavoriteHobby1);
+        }
+        if (Input.FavoriteHobby2 != cachedFavHobby2?.HobbyName) 
+        {
+            updateQueue.Add(dbUser => dbUser.FavoriteHobby2 = Input.FavoriteHobby2);
+        }
+        if (Input.FavoriteHobby3 != cachedFavHobby3?.HobbyName) 
+        {
+            updateQueue.Add(dbUser => dbUser.FavoriteHobby3 = Input.FavoriteHobby3);
+        }
+        
+        await UpdateDbUser(updateQueue); *@
+    }
+
+    private async Task UpdateDbUser(List<Action<ApplicationUser>> updateQueue) {
+        bool anyChanges = updateQueue.Count() != 0;
+
+        if (anyChanges)
+        {
+            try {
+                ApplicationUser dbUser = await Db.Users.FindAsync(user.Id) ?? throw new NullReferenceException();
+                
+                updateQueue.ForEach(action => action.Invoke(dbUser));
+
+                await Db.SaveChangesAsync();
+            }
+            catch (Exception ex) when (ex is DbUpdateException or NullReferenceException)
+            {
+                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to update hobbies.", HttpContext);
+            }
+        }
+
+        await SignInManager.RefreshSignInAsync(user);
+        RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated.", HttpContext);
+    }
+
+    private sealed class InputModel
+    {
+        [DataType(DataType.Text)]
+        [Display(Name = "#1 Hobby")]
+        public string? FavoriteHobby1 { get; set; }
+
+        [DataType(DataType.Text)]
+        [Display(Name = "#2 Hobby")]
+        public string? FavoriteHobby2 { get; set; }
+
+        [DataType(DataType.Text)]
+        [Display(Name = "#3 Hobby")]
+        public string? FavoriteHobby3 { get; set; }
+    }
+}

@@ -6,7 +6,9 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using BlazorServer.Data
+@using Microsoft.EntityFrameworkCore
 
+@inject ApplicationDbContext Db
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
 @inject SignInManager<ApplicationUser> SignInManager
@@ -33,7 +35,7 @@
                 <ValidationMessage For="() => Input.Email" class="text-danger" />
             </div>
             <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Username" id="Input.Username" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                <InputText @bind-Value="Input.Username" id="Input.Username" class="form-control" autocomplete="username" aria-required="true" placeholder="ExampleName" />
                 <label for="Input.Email">Username</label>
                 <ValidationMessage For="() => Input.Email" class="text-danger" />
             </div>
@@ -74,8 +76,18 @@
     {
         var user = CreateUser();
 
+        bool badUsername = await Db.Users.AnyAsync(u => u.UserName == Input.Username);
+        if (badUsername) {
+            identityErrors = [new () {Description="This username is already in use."}];
+            return;
+        }
         await UserStore.SetUserNameAsync(user, Input.Username, CancellationToken.None);
 
+        bool badEmail = await Db.Users.AnyAsync(u => u.Email == Input.Email || u.BcitEmail == Input.Email);
+        if (badEmail) {
+            identityErrors = [new () {Description="This email is already in use."}];
+            return;
+        }
         var emailStore = GetEmailStore();
         await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
 
@@ -98,6 +110,21 @@
 
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
+        try 
+        {
+            ApplicationUser dbUser = await Db.Users.FindAsync(user.Id) ?? throw new NullReferenceException();
+            
+            dbUser.DateRegistered = DateTime.Now;
+
+            await Db.SaveChangesAsync();
+        }
+        catch (Exception ex) when (ex is DbUpdateException or NullReferenceException)
+        {
+            identityErrors = [UserManager.ErrorDescriber.ConcurrencyFailure()];
+            return;
+        }
+
+
         if (UserManager.Options.SignIn.RequireConfirmedAccount)
         {
             RedirectManager.RedirectTo(
@@ -105,7 +132,8 @@
                 new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
         }
 
-        await SignInManager.SignInAsync(user, isPersistent: false);
+        await SignInManager.SignInAsync(user, isPersistent: true);
+
         RedirectManager.RedirectTo(ReturnUrl);
     }
 

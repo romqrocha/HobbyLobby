@@ -64,7 +64,7 @@ public class EmailSender(
         return SendEmailAsync(
             email,
             "HobbyLobby Email Confirmation",
-            $"Hello {user.UserName}, here is your email confirmation link: {confirmationLink}."
+            $"Hello {user.UserName}, here is your email confirmation link:\n{confirmationLink}"
         );
     }
 
@@ -73,7 +73,7 @@ public class EmailSender(
         return SendEmailAsync(
             email,
             "HobbyLobby Password Reset",
-            $"Hello {user.UserName}, here is your password reset link: {resetLink}."
+            $"Hello {user.UserName}, here is your password reset link:\n{resetLink}"
         );
     }
 
@@ -82,7 +82,7 @@ public class EmailSender(
         return SendEmailAsync(
             email,
             "HobbyLobby Password Reset",
-            $"Hello {user.UserName}, here is your password reset code: {resetCode}."
+            $"Hello {user.UserName}, here is your password reset code:\n{resetCode}"
         );
     }
 }

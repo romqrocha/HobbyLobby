@@ -9,23 +9,23 @@
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject ApplicationDbContext Db
 
 <PageTitle>Log in</PageTitle>
 
-<h1>Log in</h1>
-<div class="row">
+<div class="row justify-content-center">
     <div class="col-lg-6">
+        <h1>Log in</h1>
         <section>
             <StatusMessage Message="@errorMessage" />
             <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
                 <DataAnnotationsValidator />
-                <h2>Use a local account to log in.</h2>
                 <hr />
                 <ValidationSummary class="text-danger" role="alert" />
                 <div class="form-floating mb-3">
-                    <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                    <label for="Input.Email" class="form-label">Email</label>
-                    <ValidationMessage For="() => Input.Email" class="text-danger" />
+                    <InputText @bind-Value="Input.Username" id="Input.Username" class="form-control" autocomplete="username" aria-required="true" placeholder="examplename / name@example.com" />
+                    <label for="Input.Username" class="form-label">Username / Email</label>
+                    <ValidationMessage For="() => Input.Username" class="text-danger" />
                 </div>
                 <div class="form-floating mb-3">
                     <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
@@ -38,7 +38,7 @@
                         Remember me
                     </label>
                 </div>
-                <div>
+                <div class="mb-3">
                     <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
                 </div>
                 <div>
@@ -53,13 +53,6 @@
                     </p>
                 </div>
             </EditForm>
-        </section>
-    </div>
-    <div class="col-lg-4 col-lg-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
-            <ExternalLoginPicker />
         </section>
     </div>
 </div>
@@ -87,9 +80,20 @@
 
     public async Task LoginUser()
     {
+        bool withEmail = false;
+        string usernameFromEmail = "";
+
+        if (Input.Username.Contains('@') && Input.Username.Contains('.')) {
+            string email = Input.Username;
+            withEmail = true;
+            usernameFromEmail = Db.Users.Where(u => u.Email == email).First()?.UserName ?? "";
+        }
+
+        string username = withEmail ? usernameFromEmail : Input.Username;
+
         // This doesn't count login failures towards account lockout
         // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+        var result = await SignInManager.PasswordSignInAsync(username, Input.Password, Input.RememberMe, lockoutOnFailure: false);
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
@@ -108,15 +112,15 @@
         }
         else
         {
-            errorMessage = "Error: Invalid login attempt.";
+            errorMessage = "Error: Wrong username or password.";
         }
     }
 
     private sealed class InputModel
     {
         [Required]
-        [EmailAddress]
-        public string Email { get; set; } = "";
+        [DataType(DataType.Text)]
+        public string Username { get; set; } = "";
 
         [Required]
         [DataType(DataType.Password)]
