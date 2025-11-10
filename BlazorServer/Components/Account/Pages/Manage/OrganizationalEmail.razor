@@ -1,0 +1,189 @@
+﻿@page "/Account/Manage/OrganizationalEmail"
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Encodings.Web
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using BlazorServer.Data
+@using Microsoft.EntityFrameworkCore
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IEmailSender<ApplicationUser> EmailSender
+@inject IdentityUserAccessor UserAccessor
+@inject NavigationManager NavigationManager
+@inject ApplicationDbContext Db
+
+<PageTitle>Manage Organizational Email</PageTitle>
+
+<h3>Manage your BCIT email</h3>
+
+<StatusMessage Message="@message" />
+<div class="row">
+    <div class="col-xl-6">
+        <EditForm Model="VerifyNewEmailInput" FormName="verify-new-email" OnValidSubmit="OnSendEmailVerificationAsync" method="post">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+            @if (isEmailConfirmed)
+            {
+                <div class="form-floating mb-3 input-group">
+                    <input type="text" value="@cachedBcitEmail" id="email" class="form-control" placeholder="firstlast@my.bcit.ca" disabled=@HasBcitEmail/>
+                    <div class="input-group-append">
+                        <span class="h-100 input-group-text text-success font-weight-bold">✓</span>
+                    </div>
+                    <label for="email" class="form-label">BCIT Email</label>
+                </div>
+            }
+            else
+            {
+                <div class="form-floating mb-3">
+                    <InputText type="text" @bind-Value=VerifyNewEmailInput.NewBcitEmail id="email" class="form-control" placeholder="firstlast@my.bcit.ca" disabled=@HasBcitEmail/>
+                    <label for="email" class="form-label">BCIT Email</label>
+                    <button type="submit" class="btn btn-link ps-0 ms-0">Send verification email</button>
+                </div>
+            }
+         </EditForm>
+         <EditForm Model="ChangeEmailInput" FormName="change-email" OnValidSubmit="OnChangeEmailAsync" method="post">
+            @if (cachedBcitEmail is not null) {
+                <div class="form-floating mb-3">
+                    <InputText @bind-Value=ChangeEmailInput.ChangedBcitEmail id="Input.ChangedBcitEmail" class="form-control" autocomplete="email" aria-required="true" placeholder="Enter a new email" />
+                    <label for="Input.ChangedBcitEmail" class="form-label">New email</label>
+                    <ValidationMessage For="() => ChangeEmailInput.ChangedBcitEmail" class="text-danger" />
+                </div>
+                <button type="submit" class="w-100 btn btn-lg btn-primary">Change email</button>
+            }
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private string? message;
+    private ApplicationUser user = default!;
+    private string? cachedBcitEmail;
+    private bool isEmailConfirmed;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm(FormName = "verify-new-email")]
+    private VerifyNewEmailModel VerifyNewEmailInput { get; set; } = new();
+
+    [SupplyParameterFromForm(FormName = "change-email")]
+    private ChangeEmailModel ChangeEmailInput { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        cachedBcitEmail = user.BcitEmail;
+        isEmailConfirmed = user.BcitEmailIsVerified;
+
+        VerifyNewEmailInput.NewBcitEmail ??= cachedBcitEmail;
+        ChangeEmailInput.ChangedBcitEmail ??= cachedBcitEmail;
+    }
+
+    private bool HasBcitEmail => cachedBcitEmail is not null;
+
+    private bool IsValidBcitEmail(string email) {
+        return email.EndsWith("@my.bcit.ca") || email.EndsWith("@bcit.ca");
+    }
+
+    private async Task<bool> IsUniqueEmail(string email) {
+        return !await Db.Users.AnyAsync(u => u.Email == email || u.BcitEmail == email);
+    }
+
+    private async Task OnChangeEmailAsync()
+    {
+        if (ChangeEmailInput.ChangedBcitEmail is null || ChangeEmailInput.ChangedBcitEmail == cachedBcitEmail)
+        {
+            message = "Your email is unchanged.";
+            return;
+        }
+
+        if (!IsValidBcitEmail(ChangeEmailInput.ChangedBcitEmail)) {
+            message = "Error: This is not a valid BCIT email. Valid BCIT emails are @my.bcit.ca and @bcit.ca";
+            return;
+        }
+
+        if (!await IsUniqueEmail(ChangeEmailInput.ChangedBcitEmail)) {
+            message = "This email is already in use.";
+            return;
+        }
+
+        var userId = await UserManager.GetUserIdAsync(user);
+        var code = await UserManager.GenerateChangeEmailTokenAsync(user, ChangeEmailInput.ChangedBcitEmail);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+            NavigationManager.ToAbsoluteUri("Account/ConfirmOrganizationalEmailChange").AbsoluteUri,
+            new Dictionary<string, object?> { ["userId"] = userId, ["email"] = ChangeEmailInput.ChangedBcitEmail, ["code"] = code });
+
+        await EmailSender.SendConfirmationLinkAsync(user, ChangeEmailInput.ChangedBcitEmail, HtmlEncoder.Default.Encode(callbackUrl));
+
+        message = "Confirmation link to change email sent. Please check your spam folder.";
+    }
+
+    private async Task OnSendEmailVerificationAsync()
+    {
+        if (user.BcitEmailIsVerified) {
+            message = "Your BCIT email is already verified!";
+            return;
+        }
+
+        if (VerifyNewEmailInput.NewBcitEmail is null)
+        {
+            message = "Error: Please enter an email first.";
+            return;
+        }
+
+        if (!IsValidBcitEmail(VerifyNewEmailInput.NewBcitEmail)) {
+            message = "Error: This is not a valid BCIT email. Valid BCIT emails are @my.bcit.ca and @bcit.ca";
+            return;
+        }
+
+        if (!await IsUniqueEmail(VerifyNewEmailInput.NewBcitEmail)) {
+            message = "Error: This email is already in use.";
+            return;
+        }
+
+        var userId = await UserManager.GetUserIdAsync(user);
+        var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+            NavigationManager.ToAbsoluteUri("Account/ConfirmOrganizationalEmail").AbsoluteUri,
+            new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
+
+        try {
+            ApplicationUser dbUser = await Db.Users.FindAsync(user.Id) ?? throw new NullReferenceException();
+            
+            dbUser.BcitEmail = VerifyNewEmailInput.NewBcitEmail;
+
+            await Db.SaveChangesAsync();
+        }
+        catch (Exception ex) when (ex is DbUpdateException or NullReferenceException)
+        {
+            message = "Error: Authorization or database error";
+            return;
+        }
+
+        await EmailSender.SendConfirmationLinkAsync(user, VerifyNewEmailInput.NewBcitEmail, HtmlEncoder.Default.Encode(callbackUrl));
+
+        message = "Verification email sent. Please check your spam folder.";
+    }
+
+    private sealed class VerifyNewEmailModel
+    {
+        [Required]
+        [EmailAddress]
+        [DataType(DataType.EmailAddress)]
+        [Display(Name = "New email")]
+        public string? NewBcitEmail { get; set; }
+    }
+
+    private sealed class ChangeEmailModel
+    {
+        [Required]
+        [EmailAddress]
+        [DataType(DataType.EmailAddress)]
+        [Display(Name = "Changed email")]
+        public string? ChangedBcitEmail { get; set; }
+    }
+}

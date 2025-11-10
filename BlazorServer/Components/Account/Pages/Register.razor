@@ -83,7 +83,7 @@
         }
         await UserStore.SetUserNameAsync(user, Input.Username, CancellationToken.None);
 
-        bool badEmail = await Db.Users.AnyAsync(u => u.Email == Input.Email);
+        bool badEmail = await Db.Users.AnyAsync(u => u.Email == Input.Email || u.BcitEmail == Input.Email);
         if (badEmail) {
             identityErrors = [new () {Description="This email is already in use."}];
             return;
@@ -110,6 +110,21 @@
 
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
+        try 
+        {
+            ApplicationUser dbUser = await Db.Users.FindAsync(user.Id) ?? throw new NullReferenceException();
+            
+            dbUser.DateRegistered = DateTime.Now;
+
+            await Db.SaveChangesAsync();
+        }
+        catch (Exception ex) when (ex is DbUpdateException or NullReferenceException)
+        {
+            identityErrors = [UserManager.ErrorDescriber.ConcurrencyFailure()];
+            return;
+        }
+
+
         if (UserManager.Options.SignIn.RequireConfirmedAccount)
         {
             RedirectManager.RedirectTo(
@@ -117,7 +132,8 @@
                 new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
         }
 
-        await SignInManager.SignInAsync(user, isPersistent: false);
+        await SignInManager.SignInAsync(user, isPersistent: true);
+
         RedirectManager.RedirectTo(ReturnUrl);
     }
 

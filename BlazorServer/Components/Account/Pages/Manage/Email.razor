@@ -6,11 +6,13 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using BlazorServer.Data
+@using Microsoft.EntityFrameworkCore
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IEmailSender<ApplicationUser> EmailSender
 @inject IdentityUserAccessor UserAccessor
 @inject NavigationManager NavigationManager
+@inject ApplicationDbContext Db
 
 <PageTitle>Manage email</PageTitle>
 
@@ -79,6 +81,12 @@
         if (Input.NewEmail is null || Input.NewEmail == email)
         {
             message = "Your email is unchanged.";
+            return;
+        }
+
+        bool newEmail = !await Db.Users.AnyAsync(u => u.Email == email || u.BcitEmail == email);
+        if (!newEmail) {
+            message = "Error: This email is already in use.";
             return;
         }
 
