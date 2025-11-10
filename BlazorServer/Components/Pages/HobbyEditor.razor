@@ -1,4 +1,5 @@
 ﻿@page "/hobby"
+@using BlazorServer.Data
 @rendermode InteractiveServer
 
 <PageTitle>HobbyEditor</PageTitle>
@@ -16,13 +17,10 @@
     <div id="myHobbies" class="d-flex justify-content-around">
         @foreach (var hobby in myHobbies)
             {
-                @* <button class="btn rounded-pill my-hobby">
-                    @hobby
-                </button > *@
                 <button 
                     @onclick="(() => RemoveHobby(hobby))"
                     class="btn rounded-pill @(myHobbies.Contains(hobby) ? myHobbyClass : otherHobbyClass)">
-                    @hobby
+                    @hobby.HobbyName
                 </button >
             }
     </div>
@@ -33,7 +31,7 @@
                 <button 
                     @onclick="(() => AddHobby(hobby))"
                     class="btn rounded-pill @(otherHobbies.Contains(hobby) ? otherHobbyClass : myHobbyClass)">
-                    @hobby
+                    @hobby.HobbyName
                 </button >
             }
     </div>
@@ -48,18 +46,17 @@
     private string myHobbyClass = "btn rounded-pill my-hobby";
 
     private string otherHobbyClass = "btn rounded-pill other-hobby";
-    // Test data for now
-    private List<string> myHobbies = new List<string> {"Soccer", "Painting", "Piano"};
 
-    // Test data for now
-    private List<string> otherHobbies = new List<string> {"Camping", "Running", "Baseball", "Pottery", "Tennis"};
+    private List<Hobby> myHobbies = new List<Hobby> { new Hobby {HobbyId = 1, HobbyName = "Soccer" }, new Hobby {HobbyId = 2, HobbyName = "Piano" } };
 
-    private void RemoveHobby(string hobby){
+    private List<Hobby> otherHobbies = new List<Hobby> { new Hobby {HobbyId = 3, HobbyName = "Painting" }, new Hobby {HobbyId = 4, HobbyName = "Running" } };
+
+    private void RemoveHobby(Hobby hobby){
         myHobbies.Remove(hobby);
         otherHobbies.Add(hobby);
     }
 
-    private void AddHobby(string hobby){
+    private void AddHobby(Hobby hobby){
         otherHobbies.Remove(hobby);
         myHobbies.Add(hobby);
     }
