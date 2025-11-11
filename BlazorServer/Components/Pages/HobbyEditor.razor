@@ -1,12 +1,23 @@
 ﻿@page "/hobby"
+@using BlazorServer.Components.Account
 @using BlazorServer.Data
 @rendermode InteractiveServer
+@using BlazorServer.Services
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity.EntityFrameworkCore
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Claims
+
+@inject HobbyService hobbyService
+@inject ApplicationDbContext Db
+@inject IdentityUserAccessor UserAccessor
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>HobbyEditor</PageTitle>
 
 <div class="container-fluid">
     <a href="">Back</a>
-    <h1 class="text-center">What are you interested in?</h1>
+    <h1 class="text-center"> Hi, what are you interested in?</h1>
 
     <div class="input-group">
         <span class="input-group-text" id="hobby-search-addon"><span class="bi bi-search"></span></span>
@@ -18,7 +29,7 @@
     <div id="myHobbies" class="d-flex justify-content-around">
         @foreach (var hobby in myHobbies)
         {
-            <button @onclick="(() => RemoveHobby(hobby))"
+            <button type="button" @onclick="(() => RemoveHobby(hobby))"
                 class="btn rounded-pill @(myHobbies.Contains(hobby) ? myHobbyClass : otherHobbyClass)">
                 @hobby.HobbyName
             </button>
@@ -29,7 +40,7 @@
     <div class="d-flex justify-content-around">
         @foreach (var hobby in filteredHobbies)
         {
-            <button @onclick="(() => AddHobby(hobby))"
+            <button type="button" @onclick="(() => AddHobby(hobby))"
                 class="btn rounded-pill @(otherHobbies.Contains(hobby) ? otherHobbyClass : myHobbyClass)">
                 @hobby.HobbyName
             </button>
@@ -46,21 +57,25 @@
 
     private string otherHobbyClass = "btn rounded-pill other-hobby";
 
-    // hardcoded hobby data
     private List<Hobby> myHobbies = new List<Hobby> { new Hobby {HobbyId = 1, HobbyName = "Soccer" }, new Hobby {HobbyId =
 2, HobbyName = "Piano" } };
 
-    private List<Hobby> otherHobbies = new List<Hobby> { new Hobby {HobbyId = 3, HobbyName = "Painting" }, new Hobby
-{HobbyId = 4, HobbyName = "Running" } };
+    @* private List<Hobby> otherHobbies = new List<Hobby> { new Hobby {HobbyId = 3, HobbyName = "Painting" }, new Hobby
+{HobbyId = 4, HobbyName = "Running" } }; *@
+
+    private List<Hobby> otherHobbies = new List<Hobby>();
+@* private List<Hobby>? dbHobbies; *@
 
     private void RemoveHobby(Hobby hobby)
     {
+        Console.WriteLine("REMOVE HOBBY CLICKED");
         myHobbies.Remove(hobby);
         otherHobbies.Add(hobby);
     }
 
     private void AddHobby(Hobby hobby)
     {
+        Console.WriteLine("ADD HOBBY CLICKED");
         otherHobbies.Remove(hobby);
         myHobbies.Add(hobby);
     }
@@ -71,6 +86,42 @@
     private List<Hobby> filteredHobbies => otherHobbies.Where(
     hobby => hobby.HobbyName.ToLower().Contains(SearchText.ToLower())
     ).ToList();
+
+    // when it all starts up
+    protected override async Task OnInitializedAsync()
+    {
+
+    var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+    var user = authState.User;
+
+    if (user.Identity.IsAuthenticated)
+    {
+        // User is authenticated
+        var username = user.Identity.Name; // Get username
+        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value; // Get user ID
+        // ... access other claims as needed
+        Console.WriteLine("HERE WE ARE USER " + userId);
+        Console.WriteLine("AND YOR NAME: " + username);
+    }
+    else
+    {
+        // User is not authenticated
+    }
+
+        @* var user = (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
+        var userId = user.FindFirst(u => u.Type.Contains("nameIdentifier"))?.Value; *@
+
+        otherHobbies = await hobbyService.GetHobbiesAsync();
+        
+        @* foreach (var hobby in dbHobbies){
+            otherHobbies.Add(new Hobby {HobbyId = hobby.HobbyId, HobbyName = hobby.HobbyName});
+        } *@
+    }
+
+    // On click buttons for adding and removing hobbies
+
+
+    // Logic for searching
 
 
 }

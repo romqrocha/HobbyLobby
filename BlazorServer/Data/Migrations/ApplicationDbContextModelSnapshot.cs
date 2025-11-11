@@ -134,6 +134,9 @@ namespace BlazorServer.Migrations
                     b.HasIndex("BcitEmail")
                         .IsUnique();
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.HasIndex("FavoriteHobby1Id");
 
                     b.HasIndex("FavoriteHobby2Id");
@@ -177,6 +180,38 @@ namespace BlazorServer.Migrations
                     b.HasKey("HobbyId");
 
                     b.ToTable("Hobbies");
+
+                    b.HasData(
+                        new
+                        {
+                            HobbyId = 1,
+                            HobbyName = "Piano"
+                        },
+                        new
+                        {
+                            HobbyId = 2,
+                            HobbyName = "Soccer"
+                        },
+                        new
+                        {
+                            HobbyId = 3,
+                            HobbyName = "Painting"
+                        },
+                        new
+                        {
+                            HobbyId = 4,
+                            HobbyName = "Running"
+                        },
+                        new
+                        {
+                            HobbyId = 5,
+                            HobbyName = "Tennis"
+                        },
+                        new
+                        {
+                            HobbyId = 6,
+                            HobbyName = "Puzzles"
+                        });
                 });
 
             modelBuilder.Entity("BlazorServer.Data.Message", b =>

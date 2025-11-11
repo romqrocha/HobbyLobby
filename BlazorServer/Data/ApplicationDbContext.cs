@@ -1,3 +1,6 @@
+using System.Globalization;
+using CsvHelper;
+using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,5 +42,33 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         // Unique email
         modelBuilder.Entity<ApplicationUser>().HasIndex(u => u.Email).IsUnique();
+
+        // Seed the DB with Hobby data
+        modelBuilder.Entity<Hobby>().HasData(GetHobbies());
+    }
+
+    /// <summary>
+    /// Gets the hobby data from hobbyData.csv and enters it in the database.
+    /// </summary>
+    /// <returns></returns>
+    private static IEnumerable<Hobby> GetHobbies()
+    {
+        string[] p = { Directory.GetCurrentDirectory(), "wwwroot", "hobbyData.csv" };
+        var csvFilePath = Path.Combine(p);
+
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            PrepareHeaderForMatch = args => args.Header.ToLower(),
+        };
+
+        var data = new List<Hobby>().AsEnumerable();
+        using (var reader = new StreamReader(csvFilePath))
+        {
+            using (var csvReader = new CsvReader(reader, config))
+            {
+                data = csvReader.GetRecords<Hobby>().ToList();
+            }
+        }
+        return data;
     }
 }
