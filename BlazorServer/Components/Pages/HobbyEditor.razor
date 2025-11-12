@@ -16,8 +16,13 @@
 <PageTitle>HobbyEditor</PageTitle>
 
 <div class="container-fluid">
-    <a href="">Back</a>
-    <h1 class="text-center"> Hi, what are you interested in?</h1>
+
+    <div class="d-flex justify-content-between">
+        <a href="">Back</a>
+    <button type="button" class="btn btn-primary" @onclick="SaveChanges">Save Hobbies</button>
+    </div>
+
+    <h1 class="text-center"> What are you interested in?</h1>
 
     <div class="input-group">
         <span class="input-group-text" id="hobby-search-addon"><span class="bi bi-search"></span></span>
@@ -53,31 +58,32 @@
 
 @code {
 
+    private ApplicationUser dbUser = default!;
+
     private string myHobbyClass = "btn rounded-pill my-hobby";
 
     private string otherHobbyClass = "btn rounded-pill other-hobby";
 
-    private List<Hobby> myHobbies = new List<Hobby> { new Hobby {HobbyId = 1, HobbyName = "Soccer" }, new Hobby {HobbyId =
-2, HobbyName = "Piano" } };
-
-    @* private List<Hobby> otherHobbies = new List<Hobby> { new Hobby {HobbyId = 3, HobbyName = "Painting" }, new Hobby
-{HobbyId = 4, HobbyName = "Running" } }; *@
+    private List<Hobby> myHobbies = new List<Hobby>();
 
     private List<Hobby> otherHobbies = new List<Hobby>();
-@* private List<Hobby>? dbHobbies; *@
 
     private void RemoveHobby(Hobby hobby)
     {
-        Console.WriteLine("REMOVE HOBBY CLICKED");
         myHobbies.Remove(hobby);
         otherHobbies.Add(hobby);
     }
 
     private void AddHobby(Hobby hobby)
     {
-        Console.WriteLine("ADD HOBBY CLICKED");
         otherHobbies.Remove(hobby);
         myHobbies.Add(hobby);
+    }
+
+    private async Task SaveChanges()
+    {
+        dbUser.Hobbies = myHobbies;
+        await Db.SaveChangesAsync();
     }
 
     // Logic for searching
@@ -90,38 +96,36 @@
     // when it all starts up
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
 
-    var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-    var user = authState.User;
+        if (user?.Identity?.IsAuthenticated ?? (user!=null && user.Identity != null))
+        {
+            // User is authenticated
+            var username = user.Identity.Name; // Get username
+            var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value; // Get user ID
+                                                                           // ... access other claims as needed
+            Console.WriteLine("HERE WE ARE USER " + userId);
+            Console.WriteLine("AND YOR NAME: " + username);
 
-    if (user.Identity.IsAuthenticated)
-    {
-        // User is authenticated
-        var username = user.Identity.Name; // Get username
-        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value; // Get user ID
-        // ... access other claims as needed
-        Console.WriteLine("HERE WE ARE USER " + userId);
-        Console.WriteLine("AND YOR NAME: " + username);
+            dbUser = await Db.Users
+                .Include(u => u.Hobbies)
+                .FirstOrDefaultAsync(u => u.Id == userId)
+                ?? throw new NullReferenceException();
+            Console.WriteLine("DB USER: " + dbUser.UserName);
+            
+            myHobbies = dbUser.Hobbies?.ToList() ?? new List<Hobby>();
+            Console.WriteLine("my hobbies = " + myHobbies.Count);
+            var dbHobbies = await hobbyService.GetHobbiesAsync();
+
+            otherHobbies = dbHobbies.Where(hobby => !myHobbies.Contains(hobby) ).ToList();
+        }
+        else
+        {
+            // User is not authenticated
+        }
     }
-    else
-    {
-        // User is not authenticated
-    }
 
-        @* var user = (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
-        var userId = user.FindFirst(u => u.Type.Contains("nameIdentifier"))?.Value; *@
-
-        otherHobbies = await hobbyService.GetHobbiesAsync();
-        
-        @* foreach (var hobby in dbHobbies){
-            otherHobbies.Add(new Hobby {HobbyId = hobby.HobbyId, HobbyName = hobby.HobbyName});
-        } *@
-    }
-
-    // On click buttons for adding and removing hobbies
-
-
-    // Logic for searching
 
 
 }
