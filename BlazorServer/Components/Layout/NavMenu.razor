@@ -6,43 +6,46 @@
 
 @inject NavigationManager NavigationManager
 
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+<nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
     <a class="navbar-brand" href="">HobbyLobby</a>
-            <div class="input-group">
-            <span class="input-group-text" id="basic-addon1"><span class="bi bi-search"></span></span>
-            <input type="text" class="form-control" placeholder="Search for hobbies..." aria-label="Search"
-                aria-describedby="basic-addon1" @onkeydown="HandleKeyDown" @bind-value="SearchText" @bind-value:event="oninput">
-        </div>
-        <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="counter" Match="NavLinkMatch.All">
-                        <span class="bi bi-chat-message-fill-nav-menu" aria-hidden="true"></span> Messages
-                    </NavLink>
-        </div>
 
-        <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="weather" Match="NavLinkMatch.All">
-                        <span class="bi bi-user-profile-fill-nav-menu" aria-hidden="true"></span> Profile
-                    </NavLink>
-        </div>
+    <div class="input-group">
+        <span class="input-group-text" id="basic-addon1"><span class="bi bi-search"></span></span>
+        <input type="text" class="form-control" placeholder="Search for hobbies..." aria-label="Search"
+            aria-describedby="basic-addon1" @onkeydown="HandleKeyDown" @bind-value="SearchText"
+            @bind-value:event="oninput">
+    </div>
 
-        <AuthorizeView>
-            <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <form action="Account/Logout" method="post">
-                        <AntiforgeryToken />
-                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                        <button type="submit" class="nav-link">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
-                        </button>
-                    </form>
-                </div>
-            </Authorized>
-            <NotAuthorized>
+    <AuthorizeView>
+        <Authorized>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="counter" Match="NavLinkMatch.All">
+                    <span class="bi bi-chat-message-fill-nav-menu" aria-hidden="true"></span> Messages
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="weather" Match="NavLinkMatch.All">
+                    <span class="bi bi-user-profile-fill-nav-menu" aria-hidden="true"></span> Profile
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="Account/Manage">
+                    <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <form action="Account/Logout" method="post">
+                    <AntiforgeryToken />
+                    <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                    <button type="submit" class="nav-link">
+                        <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                    </button>
+                </form>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            <div class="d-flex justify-content-end">
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Register">
                         <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
@@ -53,9 +56,10 @@
                         <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
                     </NavLink>
                 </div>
-            </NotAuthorized>
-        </AuthorizeView>
-    </nav>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
+</nav>
 
 
 @code {
@@ -78,14 +82,15 @@
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
 
-    public string? SearchText {get; set;}
+    public string? SearchText { get; set; }
 
-    public void HandleKeyDown(KeyboardEventArgs e){
-        
-        if (e.Key == "Enter"){
+    public void HandleKeyDown(KeyboardEventArgs e)
+    {
+
+        if (e.Key == "Enter")
+        {
             Console.WriteLine("Search called! For text: " + SearchText);
             NavigationManager.NavigateTo($"search/{SearchText}");
         }
     }
 }
-
