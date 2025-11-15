@@ -1,0 +1,52 @@
+﻿@page "/search"
+@using BlazorServer.Data
+@using BlazorServer.Services
+@using Microsoft.EntityFrameworkCore
+@rendermode InteractiveServer
+
+@inject HobbyService hobbyService
+@inject ApplicationDbContext Db
+
+
+<PageTitle>Search Results</PageTitle>
+
+<h1>Results:</h1>
+
+
+<div id="cardContainer" class="d-flex flex-row bd-highlight mb-3 justify-content-between flex-wrap">
+
+        @foreach (var user in userList)
+        {
+            
+            <ProfileCard ProfileUser=@user />
+            
+        }
+</div>
+
+
+@code {
+
+    private List<ApplicationUser> userList = new List<ApplicationUser>();
+
+    public string SearchText = "Tennis";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var dbUsers = await Db.Users
+            .Include(u => u.Hobbies).ToListAsync<ApplicationUser>();
+
+        // get all the hobbies that match the search string
+            var dbHobbies = await hobbyService.GetHobbiesAsync();
+        
+        var hobby = dbHobbies[1];
+
+        Console.WriteLine(hobby.HobbyName);
+
+
+        // filter the user list
+        @* userList = dbUsers.Where(user => user.Hobbies?.Contains(hobby) ?? false).ToList(); *@
+
+        userList = dbUsers.Where(user => user.Hobbies?.Intersect(dbHobbies).ToList().Count > 0).ToList();
+    }
+
+}

@@ -1,0 +1,34 @@
+﻿@using BlazorServer.Data
+
+
+<div class="card" style="width: 18rem;">
+<h5 class="card-title">@ProfileUser.DisplayName</h5>
+  <img class="card-img-top" src=@ProfileUser.ProfilePictureURL alt="User profile picture">
+  <div class="card-body">
+    <p class="card-text">@matchPercent</p>
+    <ol>
+    <li>@(ProfileUser.FavoriteHobby1?.HobbyName ?? "No hobby selected")</li>
+    <li>@(ProfileUser.FavoriteHobby2?.HobbyName ?? "No hobby selected")</li>
+    <li>@(ProfileUser.FavoriteHobby3?.HobbyName ?? "No hobby selected")</li>
+    </ol>
+    <a href="#" class="btn btn-primary">See Profile</a>
+  </div>
+</div>
+
+
+
+@code {
+  [Parameter]
+  public required ApplicationUser ProfileUser { get; set; }
+
+  public float matchPercent = 0;
+
+
+
+  // need to define onclick function for the See Profile button
+
+  // need to define a function to calculate the match percent
+
+
+
+}
