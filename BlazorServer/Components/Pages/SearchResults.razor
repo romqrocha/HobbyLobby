@@ -1,4 +1,4 @@
-﻿@page "/search"
+﻿@page "/search/{searchtext}"
 @using BlazorServer.Data
 @using BlazorServer.Services
 @using Microsoft.EntityFrameworkCore
@@ -26,9 +26,10 @@
 
 @code {
 
-    private List<ApplicationUser> userList = new List<ApplicationUser>();
+    [Parameter]
+    public string? SearchText {get; set;}
 
-    public string SearchText = "Tennis";
+    private List<ApplicationUser> userList = new List<ApplicationUser>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -36,11 +37,9 @@
             .Include(u => u.Hobbies).ToListAsync<ApplicationUser>();
 
         // get all the hobbies that match the search string
-            var dbHobbies = await hobbyService.GetHobbiesAsync();
+            var dbHobbies = await hobbyService.GetHobbiesWithNamesLike(SearchText ?? "");
         
-        var hobby = dbHobbies[1];
-
-        Console.WriteLine(hobby.HobbyName);
+        Console.WriteLine("Hobby count: " + dbHobbies.Count);
 
 
         // filter the user list
