@@ -2,16 +2,23 @@
 
 
 <div class="card" style="width: 18rem;">
-<h5 class="card-title">@ProfileUser.DisplayName</h5>
-  <img class="card-img-top" src=@ProfileUser.ProfilePictureURL alt="User profile picture">
   <div class="card-body">
-    <p class="card-text">@matchPercent</p>
-    <ol>
+  <h5 class="card-title text-center"><b> @ProfileUser.DisplayName </b></h5>
+  <div class="row">
+    <div class="col-md-6"> <img class="card-img-top" src=@ProfileUser.ProfilePictureURL alt="User profile picture"> </div>
+    <div class="col-md-6 d-grid gap-2">
+      <button class="btn rounded-pill hobby">Hobby 1</button>
+      <button class="btn rounded-pill hobby">Hobby 2</button>
+      <button class="btn rounded-pill hobby">Hobby 3</button>
+    </div>
+  </div>
+    <p class="card-text text-center mt-3">🙂 @matchPercent % match</p>
+    @* <ol>
     <li>@(ProfileUser.FavoriteHobby1?.HobbyName ?? "No hobby selected")</li>
     <li>@(ProfileUser.FavoriteHobby2?.HobbyName ?? "No hobby selected")</li>
     <li>@(ProfileUser.FavoriteHobby3?.HobbyName ?? "No hobby selected")</li>
-    </ol>
-    <a href="#" class="btn btn-primary">See Profile</a>
+    </ol> *@
+    <div class="text-center"><a href="#" class="btn btn-primary">See Profile</a></div>
   </div>
 </div>
 
