@@ -1,11 +1,14 @@
 ﻿@page "/search/{searchtext}"
+@attribute [Authorize]
 @using BlazorServer.Data
 @using BlazorServer.Services
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @rendermode InteractiveServer
 
 @inject HobbyService hobbyService
 @inject ApplicationDbContext Db
+
 
 
 <PageTitle>Search Results</PageTitle>
