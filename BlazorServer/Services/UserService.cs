@@ -59,7 +59,7 @@ public class UserService : IUserService
             return null;
         }
 
-        return await db.Users.FindAsync(userId);
+        return await db.Users.Include(u => u.Hobbies).FirstOrDefaultAsync(u => u.Id == userId);
     }
 
     public void RedirectToLogin(NavigationManager navManager)
@@ -70,7 +70,9 @@ public class UserService : IUserService
     public async Task<ApplicationUser?> GetFromUsername(ApplicationDbContext db, string username)
     {
         return await db
-            .Users.Where(u => u.UserName != null && u.UserName.ToLower().Equals(username.ToLower()))
+            .Users
+            .Include(u => u.Hobbies)
+            .Where(u => u.UserName != null && u.UserName.ToLower().Equals(username.ToLower()))
             .FirstAsync();
     }
 }
