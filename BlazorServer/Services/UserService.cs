@@ -20,6 +20,8 @@ public interface IUserService
     void RedirectToLogin(NavigationManager navManager);
 
     Task<ApplicationUser?> GetFromUsername(ApplicationDbContext db, string username);
+
+    Task<List<ApplicationUser>> GetAllUsers(ApplicationDbContext db);
 }
 
 public class UserService : IUserService
@@ -31,6 +33,12 @@ public class UserService : IUserService
             BannerURL = "banner/bg3.png",
             ProfilePictureURL = "pfp/finally.jpg",
         };
+
+    public async Task<List<ApplicationUser>> GetAllUsers(ApplicationDbContext db)
+    {
+        return db.Users
+            .Include(u => u.Hobbies).ToList<ApplicationUser>();
+    }
 
     public async Task<string?> GetCurrentUserId(AuthenticationStateProvider authProvider)
     {
