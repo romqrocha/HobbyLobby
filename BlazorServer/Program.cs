@@ -46,8 +46,9 @@ builder
 builder.Services.AddTransient<IEmailSender<ApplicationUser>, EmailSender>();
 builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
 
-// Hobby service
+// Other services
 builder.Services.AddScoped<HobbyService>();
+builder.Services.AddTransient<IUserService, UserService>();
 
 var app = builder.Build();
 

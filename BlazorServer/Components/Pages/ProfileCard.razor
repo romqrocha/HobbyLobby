@@ -1,0 +1,54 @@
+﻿@using BlazorServer.Data
+
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+
+<div class="card" style="width: 18rem;">
+  <div class="card-body">
+    <h5 class="card-title text-center"><b> @ProfileUser.DisplayName </b></h5>
+    <div class="row">
+      <div class="col-md-6"> <img class="card-img-top" src=@ProfileUser.ProfilePictureURL alt="User profile picture">
+      </div>
+      <div class="col-md-6 d-grid gap-2">
+        <button class="btn rounded-pill hobby">@(ProfileUser.FavoriteHobby1?.HobbyName ?? "No first hobby")</button>
+        <button class="btn rounded-pill hobby">@(ProfileUser.FavoriteHobby2?.HobbyName ?? "No second hobby")</button>
+        <button class="btn rounded-pill hobby">@(ProfileUser.FavoriteHobby3?.HobbyName ?? "No third hobby")</button>
+      </div>
+    </div>
+    <p class="card-text text-center mt-3">🙂 @matchPercent % match (WIP)</p>
+
+    <div class="text-center">
+      <button class="btn btn-primary" @onclick="GoToProfile">See Profile</button>
+    </div>
+  </div>
+</div>
+
+
+
+@code {
+  [Parameter]
+  public required ApplicationUser ProfileUser { get; set; }
+
+  public float matchPercent = 0;
+
+  public string? SeeProfileRef { get; set; }
+
+  protected override async Task OnInitializedAsync()
+  {
+    SeeProfileRef = $"/profile/{ProfileUser.UserName}";
+  }
+
+  public void GoToProfile(){
+    NavigationManager.NavigateTo($"/profile/{ProfileUser.UserName}");
+  }
+
+
+
+  // need to define onclick function for the See Profile button
+
+  // need to define a function to calculate the match percent
+
+
+
+}

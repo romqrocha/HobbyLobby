@@ -1,25 +1,28 @@
 ﻿@page "/hobby"
+@attribute [Authorize]
 @using BlazorServer.Components.Account
 @using BlazorServer.Data
 @rendermode InteractiveServer
 @using BlazorServer.Services
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Identity.EntityFrameworkCore
 @using Microsoft.EntityFrameworkCore
 @using System.Security.Claims
 
 @inject HobbyService hobbyService
+@inject IUserService userService
 @inject ApplicationDbContext Db
 @inject IdentityUserAccessor UserAccessor
-@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject AuthenticationStateProvider authProvider
 
 <PageTitle>HobbyEditor</PageTitle>
 
 <div class="container-fluid">
 
     <div class="d-flex justify-content-between">
-        <a href="">Back</a>
-    <button type="button" class="btn btn-primary" @onclick="SaveChanges">Save Hobbies</button>
+        <a href="/Account/Manage/Hobbies">Back</a>
+    <button type="button" class="btn btn-primary" disabled=@noChanges @onclick="SaveChanges">Save Hobbies</button>
     </div>
 
     <h1 class="text-center"> What are you interested in?</h1>
@@ -31,7 +34,7 @@
     </div>
 
 
-    <div id="myHobbies" class="d-flex justify-content-around">
+    <div id="myHobbies" class="d-flex justify-content-around flex-wrap">
         @foreach (var hobby in myHobbies)
         {
             <button type="button" @onclick="(() => RemoveHobby(hobby))"
@@ -42,7 +45,7 @@
     </div>
 
 
-    <div class="d-flex justify-content-around">
+    <div class="d-flex justify-content-around flex-wrap">
         @foreach (var hobby in filteredHobbies)
         {
             <button type="button" @onclick="(() => AddHobby(hobby))"
@@ -58,11 +61,13 @@
 
 @code {
 
-    private ApplicationUser dbUser = default!;
+    private ApplicationUser? dbUser = null;
 
     private string myHobbyClass = "btn rounded-pill my-hobby";
 
     private string otherHobbyClass = "btn rounded-pill other-hobby";
+
+    private bool noChanges = true;
 
     private List<Hobby> myHobbies = new List<Hobby>();
 
@@ -72,60 +77,47 @@
     {
         myHobbies.Remove(hobby);
         otherHobbies.Add(hobby);
+        noChanges = false;
     }
 
     private void AddHobby(Hobby hobby)
     {
         otherHobbies.Remove(hobby);
         myHobbies.Add(hobby);
+        noChanges = false;
     }
 
     private async Task SaveChanges()
     {
+        if (dbUser == null)
+        {
+            return;
+        }
+
         dbUser.Hobbies = myHobbies;
         await Db.SaveChangesAsync();
+        noChanges = true;
     }
 
-    // Logic for searching
     public string SearchText = "";
 
     private List<Hobby> filteredHobbies => otherHobbies.Where(
     hobby => hobby.HobbyName.ToLower().Contains(SearchText.ToLower())
     ).ToList();
 
-    // when it all starts up
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
 
-        if (user?.Identity?.IsAuthenticated ?? (user!=null && user.Identity != null))
-        {
-            // User is authenticated
-            var username = user.Identity.Name; // Get username
-            var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value; // Get user ID
-                                                                           // ... access other claims as needed
-            Console.WriteLine("HERE WE ARE USER " + userId);
-            Console.WriteLine("AND YOR NAME: " + username);
+            dbUser = await userService.GetCurrentUser(authProvider, Db);
 
-            dbUser = await Db.Users
-                .Include(u => u.Hobbies)
-                .FirstOrDefaultAsync(u => u.Id == userId)
-                ?? throw new NullReferenceException();
-            Console.WriteLine("DB USER: " + dbUser.UserName);
-            
-            myHobbies = dbUser.Hobbies?.ToList() ?? new List<Hobby>();
+            if (dbUser != null){
+                            myHobbies = dbUser.Hobbies?.ToList() ?? new List<Hobby>();
             Console.WriteLine("my hobbies = " + myHobbies.Count);
             var dbHobbies = await hobbyService.GetHobbiesAsync();
 
             otherHobbies = dbHobbies.Where(hobby => !myHobbies.Contains(hobby) ).ToList();
-        }
-        else
-        {
-            // User is not authenticated
-        }
+            }
+            
     }
-
-
 
 }

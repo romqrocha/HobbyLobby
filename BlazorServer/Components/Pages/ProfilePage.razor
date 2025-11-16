@@ -1,0 +1,223 @@
+﻿@page "/profile/{username:nonfile?}"
+
+@using BlazorServer.Data
+@using BlazorServer.Services
+@using Humanizer
+@using Microsoft.AspNetCore.Authorization
+
+@inject IUserService userService
+
+@inject AuthenticationStateProvider authProvider
+
+@inject ApplicationDbContext db
+
+@inject NavigationManager navManager
+
+@inject HobbyService hobbyService
+
+<PageTitle>HobbyEditor</PageTitle>
+<div class="d-flex flex-column gap-3 p-3 fs-5">
+    <div class="position-relative">
+        <img 
+            src="@BannerUrl" 
+            alt="Banner" 
+            class="img-fluid w-100" 
+            style="height:240px; object-fit:cover;" />
+
+        <img 
+            src="@PfpUrl" 
+            alt="Profile" 
+            class="position-absolute rounded" 
+            style="width:160px;height:160px;object-fit:cover;left:5%;bottom:-40px;" />
+    </div>
+
+    <div class="row g-3" style="margin-top:3.5rem;">
+        <div class="col-12 col-md-6">
+            <div class="d-flex flex-column gap-2">
+                <p class="mb-0 fs-3">@DisplayName</p>
+                <div class="text-muted mb-2" style="margin-top:-0.5rem">&#64;@Username</div>
+                @if (CanEdit)
+                {
+                    <a class="btn btn-primary btn-sm" href="/Account/Manage" style="width:fit-content;">
+                        Edit
+                    </a>
+                }
+                else if (CanMessage)
+                {
+                    <a class="btn btn-primary btn-sm" href="messaging" style="width:fit-content;">
+                        Message
+                    </a>
+                }
+                else
+                {
+                    <button class="btn btn-secondary btn-sm" style="width:fit-content;" disabled>
+                        Message
+                    </button>
+                }
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="d-flex flex-column gap-2">
+                <div> @Country</div>
+                <div>🙂 @MatchPercentage% Match</div>
+                <div>🕘 @DateRegistered</div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="divider" />
+
+    @if (Hobbies is not null && Hobbies.Count > 0)
+    {
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+            @foreach (var hobby in Hobbies)
+            {
+                <div class="d-flex align-items-center justify-content-center p-2">
+                    <span class="rounded-pill bg-success text-white px-3 py-2">
+                        @hobby.HobbyName
+                    </span>
+                </div>
+            }
+        </div>
+
+        <hr class="divider" />
+    }
+    else if (IsSelf)
+    {
+        <div class="d-flex flex-column">
+            <div class="text-muted">
+                This is looking pretty empty....
+            </div>
+            <div class="text-muted">
+                Why not <a href="hobby">add some hobbies</a>?
+            </div>
+        </div>
+        
+        <hr class="divider" />
+    }
+    
+
+    
+</div>
+
+@code {
+    public string? BannerUrl { get; set; }
+
+    public string? PfpUrl { get; set; }
+
+    public string? DisplayName { get; set; }
+
+    [Parameter]
+    public string? Username { get; set; }
+
+    public bool CanEdit { get; set; }
+
+    public bool CanMessage { get; set; }
+
+    public string? Country { get; set; }
+
+    public int MatchPercentage { get; set; }
+
+    public string? DateRegistered { get; set; }
+
+    public Hobby? FavHobby1 { get; set; }
+
+    public Hobby? FavHobby2 { get; set; }
+
+    public Hobby? FavHobby3 { get; set; }
+
+    public List<Hobby>? Hobbies { get; set; }
+
+    public bool IsSelf { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await PopulateUserData();
+    }
+
+    private async Task PopulateUserData() 
+    {
+        ApplicationUser? currentUser = await userService.GetCurrentUser(authProvider, db);
+        ApplicationUser? otherUser;
+
+        string? usernameQuery = Username;
+
+        while (usernameQuery is null && currentUser is null) 
+        {
+            userService.RedirectToLogin(navManager);
+        }
+
+        if (usernameQuery is null && currentUser is not null) 
+        {
+            // own profile
+            otherUser = currentUser;
+            IsSelf = true;
+
+            CanEdit = true;
+            CanMessage = false;
+        } 
+        else if (usernameQuery == currentUser?.UserName && currentUser is not null) {
+            // own profile, but preview mode (not editable)
+            otherUser = currentUser;
+            IsSelf = true;
+
+            CanEdit = false;
+            CanMessage = false;
+        }
+        else
+        {
+            // someone else's profile
+            otherUser = await userService.GetFromUsername(db, usernameQuery!);
+
+            if (otherUser is null) 
+            {
+                // TODO: user not found page
+                navManager.NavigateTo("/");
+                return;
+            }
+
+            if (currentUser?.BcitEmailIsVerified == true && otherUser?.BcitEmailIsVerified == true) 
+            {
+                // both are students and can msg each other
+                CanEdit = false;
+                CanMessage = true;
+            } 
+            else 
+            {
+                // one of these users is not a student
+                CanEdit = false;
+                CanMessage = false;
+            }
+        }
+
+        ApplicationUser defaults = userService.DefaultUser;
+
+        BannerUrl = otherUser!.BannerURL ?? defaults.BannerURL;
+        PfpUrl = otherUser.ProfilePictureURL ?? defaults.ProfilePictureURL;
+        DisplayName = otherUser.DisplayName ?? otherUser.UserName;
+        Username = otherUser.UserName;
+        Country = otherUser.Country ?? defaults.Country;
+        MatchPercentage = 0; // TODO: calculate match %
+        DateRegistered = FormatDate(otherUser.DateRegistered);
+        Hobbies = otherUser.Hobbies;
+
+        // placeholder until we figure out the favorite hobby stuff
+        if (Hobbies is not null) {
+            if (Hobbies.Count >= 1) {
+                FavHobby1 = Hobbies[0];
+                if (Hobbies.Count >= 2) {
+                    FavHobby2 = Hobbies[1];
+                    if (Hobbies.Count >= 3) {
+                        FavHobby3 = Hobbies[2];
+                    }
+                }
+            }
+        }
+    }
+
+    public string FormatDate(DateTime date) 
+    {
+        return $"{date.Year}/{date.Month.ToString("D2")}/{date.Day.ToString("D2")}";
+    }    
+
+}
