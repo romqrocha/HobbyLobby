@@ -1,4 +1,4 @@
-﻿@page "/search/{searchtext}"
+﻿@page "/search/{searchtext?}"
 @attribute [Authorize]
 @using BlazorServer.Data
 @using BlazorServer.Services
@@ -37,8 +37,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        SearchText = SearchText ?? "";
 
         var dbUsers = await userService.GetAllUsers(Db);
+
+        @* Console.WriteLine("TEST!!! SearchText: " + SearchText.Length); *@
 
         // get all the hobbies that match the search string
         var dbHobbies = await hobbyService.GetHobbiesWithNamesLike(SearchText ?? "");
