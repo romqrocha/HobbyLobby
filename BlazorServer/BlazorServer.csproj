@@ -7,9 +7,9 @@
     <UserSecretsId>aspnet-BlazorServer-01893a61-cabd-484d-9b99-0f32bc97ce55</UserSecretsId>
   </PropertyGroup>
 
-  <ItemGroup>
+  <!-- <ItemGroup>
     <None Update="Data\app.db" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
-  </ItemGroup>
+  </ItemGroup> -->
 
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="33.1.0" />
