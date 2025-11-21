@@ -116,7 +116,7 @@
 
     public string? Country { get; set; }
 
-    public int MatchPercentage { get; set; }
+    public float MatchPercentage { get; set; }
 
     public string? DateRegistered { get; set; }
 
@@ -213,6 +213,10 @@
                 }
             }
         }
+
+        Console.WriteLine("JUST BEFORE CALLING MATCH PERCENTAGE");
+        // OLIVIA GET THE MATCH PERCENTAGE
+        MatchPercentage = await userService.GetMatchPercentage(db, authProvider, otherUser);
     }
 
     public string FormatDate(DateTime date) 

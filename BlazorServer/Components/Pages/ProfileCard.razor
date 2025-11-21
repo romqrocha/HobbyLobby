@@ -1,14 +1,17 @@
 ﻿@using BlazorServer.Data
+@using BlazorServer.Services
 
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
+
+@inject IUserService userService
 
 
 <div class="card" style="width: 18rem;">
   <div class="card-body">
     <h5 class="card-title text-center"><b> @ProfileUser.DisplayName </b></h5>
     <div class="row">
-      <div class="col-md-6"> <img class="card-img-top" src=@ProfileUser.ProfilePictureURL alt="User profile picture">
+      <div class="col-md-6"> <img class="card-img-top" src=@(ProfileUser.ProfilePictureURL ?? userService.DefaultUser.ProfilePictureURL) alt="User profile picture">
       </div>
       <div class="col-md-6 d-grid gap-2">
         <button class="btn rounded-pill hobby">@(ProfileUser.FavoriteHobby1?.HobbyName ?? "No first hobby")</button>
@@ -16,7 +19,7 @@
         <button class="btn rounded-pill hobby">@(ProfileUser.FavoriteHobby3?.HobbyName ?? "No third hobby")</button>
       </div>
     </div>
-    <p class="card-text text-center mt-3">🙂 @matchPercent % match (WIP)</p>
+    <p class="card-text text-center mt-3">🙂 @matchPercent% match (WIP)</p>
 
     <div class="text-center">
       <button class="btn btn-primary" @onclick="GoToProfile">See Profile</button>
@@ -30,7 +33,8 @@
   [Parameter]
   public required ApplicationUser ProfileUser { get; set; }
 
-  public float matchPercent = 0;
+  [Parameter]
+  public float matchPercent {get; set;}
 
   public string? SeeProfileRef { get; set; }
 
