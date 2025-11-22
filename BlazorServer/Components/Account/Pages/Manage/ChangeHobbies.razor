@@ -1,131 +1,188 @@
 ﻿@page "/Account/Manage/Hobbies"
 
 @using System.ComponentModel.DataAnnotations
+@using BlazorServer.Services
 @using Microsoft.AspNetCore.Identity
 @using BlazorServer.Data
 @using Microsoft.AspNetCore.Identity.EntityFrameworkCore
 @using Microsoft.EntityFrameworkCore
 @using System.Data.Common
 
-@inject SignInManager<ApplicationUser> SignInManager
-@inject IdentityUserAccessor UserAccessor
-@inject IdentityRedirectManager RedirectManager
-@inject ApplicationDbContext Db
+@inject IdentityRedirectManager redirectManager
+@inject ApplicationDbContext db
+@inject AuthenticationStateProvider authProvider
+@inject IUserService userService
 
 <PageTitle>Profile</PageTitle>
 
 <div class="row">
     <div class="col-xl-6">
-        <h3>Your Top 3 (WIP)</h3>
-        <StatusMessage />
+        <h3>Favorite Hobbies</h3>
+
+        <StatusMessage Message="@statusMessage"/>
+        
+        <hr />
+        
         <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.FavoriteHobby1" id="Input.FavoriteHobby1" class="form-control" placeholder="Your #1 hobby" />
-                <label for="Input.FavoriteHobby1" class="form-label">#1 Hobby</label>
-                <ValidationMessage For="() => Input.FavoriteHobby1" class="text-danger" />
+
+            <ValidationMessage For="() => Input.FavoriteHobby1Id" class="text-danger" />
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="fs-4 text-center medal">🥇</span>
+                <InputSelect 
+                    id="fav1" 
+                    class="form-select flex-grow-1 py-2" 
+                    @bind-Value="Input.FavoriteHobby1Id"
+                    style="border:2px solid #d4af37; box-shadow:0 0 0 2px #d4af3780;"
+                >
+                    @if (Input.FavoriteHobby1Id is null) 
+                    {
+                        <option selected value=-1>None</option>
+                    } else {
+                        <option value=-1>None</option>
+                    }
+                    @foreach (Hobby hobby in hobbyOptions) 
+                    {
+                        <option value=@hobby.HobbyId>@hobby.HobbyName</option>    
+                    }
+                </InputSelect>
             </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.FavoriteHobby2" id="Input.FavoriteHobby2" class="form-control" placeholder="Your #2 hobby" />
-                <label for="Input.FavoriteHobby2" class="form-label">#2 Hobby</label>
-                <ValidationMessage For="() => Input.FavoriteHobby2" class="text-danger" />
+
+            <ValidationMessage For="() => Input.FavoriteHobby2Id" class="text-danger" />
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="fs-4 text-center">🥈</span>
+                <InputSelect 
+                    id="fav2" 
+                    class="form-select flex-grow-1 py-2" 
+                    @bind-Value="Input.FavoriteHobby2Id"
+                    style="border:2px solid #C0C0C0; box-shadow:0 0 0 2px #C0C0C080;"
+                >
+                    @if (Input.FavoriteHobby2Id is null) 
+                    {
+                        <option selected value=-1>None</option>
+                    } else {
+                        <option value=-1>None</option>
+                    }
+                    @foreach (Hobby hobby in hobbyOptions) 
+                    {
+                        <option value=@hobby.HobbyId>@hobby.HobbyName</option>    
+                    }
+                </InputSelect>
             </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.FavoriteHobby3" id="Input.FavoriteHobby3" class="form-control" placeholder="Your #3 hobby" />
-                <label for="Input.FavoriteHobby3" class="form-label">#3 Hobby</label>
-                <ValidationMessage For="() => Input.FavoriteHobby3" class="text-danger" />
+
+            <ValidationMessage For="() => Input.FavoriteHobby3Id" class="text-danger" />
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="fs-4 text-center">🥉</span>
+                <InputSelect 
+                    id="fav3" 
+                    class="form-select flex-grow-1 py-2" 
+                    @bind-Value="Input.FavoriteHobby3Id"
+                    style="border:2px solid #CD7F32; box-shadow:0 0 0 2px #CD7F3280;"
+                >
+                    @if (Input.FavoriteHobby3Id is null) 
+                    {
+                        <option selected value=-1>None</option>
+                    } else {
+                        <option value=-1>None</option>
+                    }
+                    @foreach (Hobby hobby in hobbyOptions) 
+                    {
+                        <option value=@hobby.HobbyId>@hobby.HobbyName</option>    
+                    }
+                </InputSelect>
             </div>
+
+            <hr />
+
             <button type="submit" class="w-100 btn btn-lg btn-primary mb-3">Save</button>
             <div>
                 <a href="../../../hobby">Want to add or remove hobbies?</a>
             </div>
-
         </EditForm>
     </div>
 </div>
 
 @code {
-    private ApplicationUser user = default!;
-    private Hobby? cachedFavHobby1;
-    private Hobby? cachedFavHobby2;
-    private Hobby? cachedFavHobby3;
+    private ApplicationUser? user;
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private List<Hobby> hobbyOptions = [];
+
+    private int? cachedFavHobby1Id;
+    private int? cachedFavHobby2Id;
+    private int? cachedFavHobby3Id;
+
+    private string? statusMessage;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
-        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        user = await userService.GetCurrentUser(authProvider, db);
+        if (user is null) redirectManager.RedirectTo("/");
 
-        cachedFavHobby1 = user.FavoriteHobby1;
-        cachedFavHobby2 = user.FavoriteHobby2;
-        cachedFavHobby3 = user.FavoriteHobby3;
+        hobbyOptions = user.Hobbies ?? [];
 
-        Input.FavoriteHobby1 ??= cachedFavHobby1?.HobbyName;
-        Input.FavoriteHobby2 ??= cachedFavHobby2?.HobbyName;
-        Input.FavoriteHobby3 ??= cachedFavHobby3?.HobbyName;
+        cachedFavHobby1Id = user.FavoriteHobby1?.HobbyId;
+        cachedFavHobby2Id = user.FavoriteHobby2?.HobbyId;
+        cachedFavHobby3Id = user.FavoriteHobby3?.HobbyId;
+
+        Input.FavoriteHobby1Id ??= cachedFavHobby1Id;
+        Input.FavoriteHobby2Id ??= cachedFavHobby2Id;
+        Input.FavoriteHobby3Id ??= cachedFavHobby3Id;
     }
 
     private async Task OnValidSubmitAsync()
     {
         List<Action<ApplicationUser>> updateQueue = new();
 
-        // Need support for adding hobbies to db
+        if (Input.FavoriteHobby1Id != cachedFavHobby1Id) 
+        {
+            Hobby? hobby = hobbyOptions.Find(u => u.HobbyId == Input.FavoriteHobby1Id);
+            updateQueue.Add(dbUser => dbUser.FavoriteHobby1 = hobby);
+        }
 
-        @* if (Input.FavoriteHobby1 != cachedFavHobby1?.HobbyName) 
+        if (Input.FavoriteHobby2Id != cachedFavHobby2Id) 
         {
-            updateQueue.Add(dbUser => dbUser.FavoriteHobby1 = Input.FavoriteHobby1);
+            Hobby? hobby = hobbyOptions.Find(u => u.HobbyId == Input.FavoriteHobby2Id);
+            updateQueue.Add(dbUser => dbUser.FavoriteHobby2 = hobby);
         }
-        if (Input.FavoriteHobby2 != cachedFavHobby2?.HobbyName) 
+
+        if (Input.FavoriteHobby3Id != cachedFavHobby3Id) 
         {
-            updateQueue.Add(dbUser => dbUser.FavoriteHobby2 = Input.FavoriteHobby2);
-        }
-        if (Input.FavoriteHobby3 != cachedFavHobby3?.HobbyName) 
-        {
-            updateQueue.Add(dbUser => dbUser.FavoriteHobby3 = Input.FavoriteHobby3);
+            Hobby? hobby = hobbyOptions.Find(u => u.HobbyId == Input.FavoriteHobby3Id);
+            updateQueue.Add(dbUser => dbUser.FavoriteHobby3 = hobby);
         }
         
-        await UpdateDbUser(updateQueue); *@
+        await UpdateDbUser(updateQueue);
     }
 
     private async Task UpdateDbUser(List<Action<ApplicationUser>> updateQueue) {
-        bool anyChanges = updateQueue.Count() != 0;
+        bool anyChanges = updateQueue.Count() > 0;
 
         if (anyChanges)
         {
             try {
-                ApplicationUser dbUser = await Db.Users.FindAsync(user.Id) ?? throw new NullReferenceException();
-                
-                updateQueue.ForEach(action => action.Invoke(dbUser));
+                updateQueue.ForEach(action => action.Invoke(user!));
 
-                await Db.SaveChangesAsync();
+                await db.SaveChangesAsync();
             }
             catch (Exception ex) when (ex is DbUpdateException or NullReferenceException)
             {
-                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to update hobbies.", HttpContext);
+                redirectManager.RedirectTo("/");
             }
         }
 
-        await SignInManager.RefreshSignInAsync(user);
-        RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated.", HttpContext);
+        statusMessage = "Your hobbies have been updated!";
     }
 
     private sealed class InputModel
     {
-        [DataType(DataType.Text)]
-        [Display(Name = "#1 Hobby")]
-        public string? FavoriteHobby1 { get; set; }
+        public int? FavoriteHobby1Id { get; set; }
 
-        [DataType(DataType.Text)]
-        [Display(Name = "#2 Hobby")]
-        public string? FavoriteHobby2 { get; set; }
+        public int? FavoriteHobby2Id { get; set; }
 
-        [DataType(DataType.Text)]
-        [Display(Name = "#3 Hobby")]
-        public string? FavoriteHobby3 { get; set; }
+        public int? FavoriteHobby3Id { get; set; }
     }
 }
