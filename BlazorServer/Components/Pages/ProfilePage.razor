@@ -15,6 +15,11 @@
 
 @inject HobbyService hobbyService
 
+@code {
+    string pill = "rounded-pill text-white px-3 py-2 fs-5";
+    string pillContainer = "d-flex align-items-center justify-content-start p-2 gap-2";
+}
+
 <PageTitle>HobbyEditor</PageTitle>
 <div class="d-flex flex-column gap-3 p-3 fs-5">
     <div class="position-relative">
@@ -31,7 +36,7 @@
             style="width:160px;height:160px;object-fit:cover;left:5%;bottom:-40px;" />
     </div>
 
-    <div class="row g-3" style="margin-top:3.5rem;">
+    <div class="row g-3" style="margin-top:2.5rem;">
         <div class="col-12 col-md-6">
             <div class="d-flex flex-column gap-2">
                 <p class="mb-0 fs-3">@DisplayName</p>
@@ -50,17 +55,19 @@
                 }
                 else
                 {
-                    <button class="btn btn-secondary btn-sm" style="width:fit-content;" disabled>
+                    <a class="btn btn-secondary btn-sm" href="/Account/Manage/OrganizationalEmail" 
+                        style="width:fit-content;" disabled
+                    >
                         Message
-                    </button>
+                    </a>
                 }
             </div>
         </div>
         <div class="col-12 col-md-6">
             <div class="d-flex flex-column gap-2">
-                <div> @Country</div>
+                <div>🌎 @Country</div>
                 <div>🙂 @MatchPercentage% Match</div>
-                <div>🕘 @DateRegistered</div>
+                <div>🕘 Since @DateRegistered</div>
             </div>
         </div>
     </div>
@@ -69,13 +76,82 @@
 
     @if (Hobbies is not null && Hobbies.Count > 0)
     {
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
-            @foreach (var hobby in Hobbies)
+        @if (FavoriteHobbies is not null && FavoriteHobbies.Count > 0) 
+        {
+            <div class="hobby-grid" style="margin-bottom:2rem;">
+                @if (FavHobby1 is not null)
+                {
+                    <div class=@pillContainer>
+                        <span class="fs-3">🥇</span>
+                        <span 
+                            class=@pill 
+                            style="background-color:#dab53e; box-shadow:0 0 0 4px #c4a23380;"
+                        >
+                            @FavHobby1.HobbyName
+                        </span>
+                    </div>
+                }
+                @if (FavHobby2 is not null)
+                {
+                    <div class=@pillContainer>
+                        <span class="fs-3">🥈</span>
+                        <span 
+                            class=@pill
+                            style="background-color:#b5b5b5; box-shadow:0 0 0 4px #afafaf80;"
+                        >
+                            @FavHobby2.HobbyName
+                        </span>
+                    </div>
+                }
+                @if (FavHobby3 is not null)
+                {
+                    <div class=@pillContainer>
+                        <span class="fs-3">🥉</span>
+                        <span 
+                            class=@pill 
+                            style="background-color:#CD7F32; box-shadow:0 0 0 4px #CD7F3280;"
+                        >
+                            @FavHobby3.HobbyName
+                        </span>
+                    </div>
+                }
+            </div>
+        }
+        
+        <div class="hobby-grid">
+            @foreach (Hobby hobby in Hobbies.Except(FavoriteHobbies ?? []))
             {
-                <div class="d-flex align-items-center justify-content-center p-2">
-                    <span class="rounded-pill bg-success text-white px-3 py-2">
-                        @hobby.HobbyName
-                    </span>
+                <div class=@pillContainer>
+                    @if (SameHobbies?.Contains(hobby) == true) 
+                    {
+                        <span class="fs-3">🙂</span>
+                        <span class="@pill bg-success">
+                            @hobby.HobbyName
+                        </span>
+                    } 
+                    else if (RecommendedHobbies?.Contains(hobby) == true) 
+                    {
+                        <span class="fs-3">💡</span>
+                        <span class="@pill bg-success">
+                            @hobby.HobbyName
+                        </span>
+                    }
+                    else  @* if (DifferentHobbies?.Contains(hobby) == true) *@
+                    {
+                        <span class="@pill bg-secondary">
+                            @hobby.HobbyName
+                        </span>
+                    }
+                </div>
+            }
+            @if (CanEdit) 
+            {
+                
+                <div class=@pillContainer>
+                    <span class="fs-3">➡️</span>
+                    <a class="btn btn-primary text-nowrap fs-5" href="hobby">
+                        📝 Add More
+                    </a>
                 </div>
             }
         </div>
@@ -125,6 +201,17 @@
     public Hobby? FavHobby2 { get; set; }
 
     public Hobby? FavHobby3 { get; set; }
+
+    public List<Hobby>? SameHobbies { get; set; }
+
+    public List<Hobby>? DifferentHobbies { get; set; }
+
+    public List<Hobby>? FavoriteHobbies { get; set; }
+
+    /// <summary>
+    /// This is where the Naive Bayes model comes in
+    /// </summary>
+    public List<Hobby>? RecommendedHobbies { get; set; }
 
     public List<Hobby>? Hobbies { get; set; }
 
@@ -197,31 +284,45 @@
         DisplayName = otherUser.DisplayName ?? otherUser.UserName;
         Username = otherUser.UserName;
         Country = otherUser.Country ?? defaults.Country;
-        MatchPercentage = 0; // TODO: calculate match %
+        MatchPercentage = await userService.GetMatchPercentage(db, authProvider, otherUser);
         DateRegistered = FormatDate(otherUser.DateRegistered);
         Hobbies = otherUser.Hobbies;
 
-        // placeholder until we figure out the favorite hobby stuff
-        if (Hobbies is not null) {
-            if (Hobbies.Count >= 1) {
-                FavHobby1 = Hobbies[0];
-                if (Hobbies.Count >= 2) {
-                    FavHobby2 = Hobbies[1];
-                    if (Hobbies.Count >= 3) {
-                        FavHobby3 = Hobbies[2];
-                    }
-                }
-            }
-        }
+        FavHobby1 = otherUser.FavoriteHobby1;
+        FavHobby2 = otherUser.FavoriteHobby2;
+        FavHobby3 = otherUser.FavoriteHobby3;
 
-        Console.WriteLine("JUST BEFORE CALLING MATCH PERCENTAGE");
-        // OLIVIA GET THE MATCH PERCENTAGE
-        MatchPercentage = await userService.GetMatchPercentage(db, authProvider, otherUser);
+        List<Hobby?> temp = [FavHobby1, FavHobby2, FavHobby3];
+        temp.RemoveAll(hobby => hobby is null);
+        FavoriteHobbies = temp.Cast<Hobby>().ToList();
+        
+        if (IsSelf)
+        {
+            SameHobbies = Hobbies;
+            DifferentHobbies = null;
+        }
+        else if (currentUser is null) 
+        {
+            SameHobbies = null;
+            DifferentHobbies = Hobbies;
+        }
+        else if (currentUser is not null)
+        {
+            SameHobbies = otherUser!.Hobbies?.Where(
+                otherHobby => 
+                {
+                    return currentUser.Hobbies?.Any(yourHobby => yourHobby == otherHobby) ?? false;
+                }
+            )?.ToList() ?? [];
+            
+            DifferentHobbies = otherUser!.Hobbies?.Except(SameHobbies)?.ToList();
+        }
+        
     }
 
-    public string FormatDate(DateTime date) 
+    private string FormatDate(DateTime date) 
     {
         return $"{date.Year}/{date.Month.ToString("D2")}/{date.Day.ToString("D2")}";
-    }    
+    }
 
 }
