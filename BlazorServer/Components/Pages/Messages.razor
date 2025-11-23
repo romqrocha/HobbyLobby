@@ -1,3 +1,162 @@
 @page "/messages"
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using BlazorServer.Data
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ApplicationDbContext DbContext
 
 <PageTitle>Messages</PageTitle>
+
+<div class="messaging-container">
+    <div class="chat-list">
+        <div class="chat-list-header">
+            <h4>Messages</h4>
+        </div>
+        
+        <div class="chat-list-items">
+            @if (chats != null && chats.Any())
+            {
+                @foreach (var chat in chats)
+                {
+                    var otherUser = chat.UserIds?.FirstOrDefault(u => u.Id != currentUserId);
+                    var lastMessage = DbContext.Messages.Where(m => m.ChatID == chat.ChatId).OrderByDescending(m => m.SentDate).ThenByDescending(m => m.SentTime).FirstOrDefault();
+                    
+                    <div class="chat-item @(selectedChatId == chat.ChatId ? "active" : "")" @onclick="() => SelectChat(chat.ChatId)">
+                        <img src="@(otherUser?.ProfilePictureURL ?? "/pfp/default-avatar.png")" alt="User" class="chat-avatar" />
+                        <div class="chat-info">
+                            <div class="chat-name">@(otherUser?.DisplayName ?? otherUser?.UserName ?? "Unknown")</div>
+                            <div class="chat-preview">@(lastMessage?.MessageContent ?? "No messages yet")</div>
+                        </div>
+                        <div class="chat-time">@GetTimeAgo(lastMessage?.SentDate, lastMessage?.SentTime)</div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div style="padding: 20px; text-align: center; color: #6c757d;">
+                    No chats yet
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="chat-window">
+        @if (selectedChat != null)
+        {
+            var otherUser = selectedChat.UserIds?.FirstOrDefault(u => u.Id != currentUserId);
+            
+            <div class="chat-header">
+                <img src="@(otherUser?.ProfilePictureURL ?? "/pfp/default-avatar.png")" alt="User" class="header-avatar" />
+                <h5>@(otherUser?.DisplayName ?? otherUser?.UserName ?? "Unknown")</h5>
+            </div>
+
+            <div class="messages-area">
+                @if (messages != null && messages.Any())
+                {
+                    @foreach (var message in messages)
+                    {
+                        var isCurrentUser = message.SentUserId == currentUserId;
+                        
+                        <div class="message @(isCurrentUser ? "sent" : "received")">
+                            @if (!isCurrentUser)
+                            {
+                                <img src="@(message.SentUser?.ProfilePictureURL ?? "/pfp/default-avatar.png")" alt="User" class="message-avatar" />
+                            }
+                            <div class="message-content">
+                                <div class="message-text">@message.MessageContent</div>
+                                <div class="message-timestamp">@FormatTime(message.SentTime)</div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+        else
+        {
+            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #6c757d;">
+                Select a chat to start messaging
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string? currentUserId;
+    private List<Chat>? chats;
+    private Chat? selectedChat;
+    private int? selectedChatId;
+    private List<Message>? messages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.GetUserAsync(authState.User);
+        
+        if (user != null)
+        {
+            currentUserId = user.Id;
+            await LoadChats();
+        }
+    }
+
+    private async Task LoadChats()
+    {
+        chats = await DbContext.Chats
+            .Include(c => c.UserIds)
+            .Where(c => c.UserIds.Any(u => u.Id == currentUserId))
+            .ToListAsync();
+
+        if (chats.Any())
+        {
+            await SelectChat(chats.First().ChatId);
+        }
+    }
+
+    private async Task SelectChat(int chatId)
+    {
+        selectedChatId = chatId;
+        selectedChat = chats?.FirstOrDefault(c => c.ChatId == chatId);
+        
+        if (selectedChat != null)
+        {
+            messages = await DbContext.Messages
+                .Include(m => m.SentUser)
+                .Where(m => m.ChatID == chatId)
+                .OrderBy(m => m.SentDate)
+                .ThenBy(m => m.SentTime)
+                .ToListAsync();
+        }
+    }
+
+    private string GetTimeAgo(string? date, string? time)
+    {
+        if (string.IsNullOrEmpty(date) || string.IsNullOrEmpty(time))
+            return "";
+
+        if (DateTime.TryParse($"{date} {time}", out DateTime messageTime))
+        {
+            var diff = DateTime.Now - messageTime;
+            
+            if (diff.TotalMinutes < 60)
+                return $"{(int)diff.TotalMinutes}m";
+            else if (diff.TotalHours < 24)
+                return $"{(int)diff.TotalHours}h";
+            else
+                return $"{(int)diff.TotalDays}d";
+        }
+        
+        return "";
+    }
+
+    private string FormatTime(string time)
+    {
+        if (TimeSpan.TryParse(time, out TimeSpan timeSpan))
+        {
+            var dateTime = DateTime.Today.Add(timeSpan);
+            return dateTime.ToString("h:mm tt");
+        }
+        
+        return time;
+    }
+}

@@ -1,10 +1,14 @@
 ﻿@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Identity
+@using BlazorServer.Data
 
 @rendermode InteractiveServer
 
 @implements IDisposable
 
 @inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
     <a class="navbar-brand" href="">HobbyLobby</a>
@@ -19,7 +23,7 @@
     <AuthorizeView>
         <Authorized>
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="messages" Match="NavLinkMatch.All">
+                <NavLink class="@(BcitEmailIsVerified ? "nav-link" : "nav-link disabled")" href="@(BcitEmailIsVerified ? "messages" : "#")" Match="NavLinkMatch.All">
                     <span class="bi bi-chat-message-fill-nav-menu" aria-hidden="true"></span> Messages
                 </NavLink>
             </div>
@@ -59,11 +63,20 @@
 
 @code {
     private string? currentUrl;
+    private bool BcitEmailIsVerified = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
+        
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.GetUserAsync(authState.User);
+        
+        if (user != null)
+        {
+            BcitEmailIsVerified = user.BcitEmailIsVerified;
+        }
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)

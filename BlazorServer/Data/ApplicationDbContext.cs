@@ -11,6 +11,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 {
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<Hobby> Hobbies => Set<Hobby>();
+    public DbSet<Chat> Chats => Set<Chat>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
