@@ -65,3 +65,4 @@ nunit-*.xml
 .idea/.idea.HobbyLobby/.idea/indexLayout.xml
 .idea/.idea.HobbyLobby/.idea/inspectionProfiles/Project_Default.xml
 .idea/.idea.HobbyLobby/.idea/vcs.xml
+*.db-wal
