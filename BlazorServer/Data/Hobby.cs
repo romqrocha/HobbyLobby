@@ -5,7 +5,6 @@ namespace BlazorServer.Data;
 
 public class Hobby
 {
-
     [Key]
     public int HobbyId { get; set; }
 
@@ -19,4 +18,13 @@ public class Hobby
 
     public List<ApplicationUser>? Favorite3Users { get; set; }
 
+    public override bool Equals(object? obj)
+    {
+        return obj is Hobby hobby && hobby.HobbyId == HobbyId;
+    }
+
+    public override int GetHashCode()
+    {
+        return HobbyId.GetHashCode();
+    }
 }

@@ -22,6 +22,10 @@ public interface IUserService
     Task<ApplicationUser?> GetFromUsername(ApplicationDbContext db, string username);
 
     Task<List<ApplicationUser>> GetAllUsers(ApplicationDbContext db);
+
+    Task<float> GetMatchPercentage(ApplicationDbContext db, AuthenticationStateProvider authProvider, ApplicationUser otherUser);
+
+    Task<List<float>> GetMatchPercentages(ApplicationDbContext db, AuthenticationStateProvider authProvider, List<ApplicationUser> otherUsers);
 }
 
 public class UserService : IUserService
@@ -82,5 +86,45 @@ public class UserService : IUserService
             .Include(u => u.Hobbies)
             .Where(u => u.UserName != null && u.UserName.ToLower().Equals(username.ToLower()))
             .FirstAsync();
+    }
+
+    // OLIVIA YOU NEED TO TEST THIS!!!
+    public async Task<float> GetMatchPercentage(ApplicationDbContext db, AuthenticationStateProvider authProvider, ApplicationUser otherUser)
+    {
+        Console.WriteLine("IN GETMATCHPERCENTAGE!!!");
+        var user = await GetCurrentUser(authProvider, db);
+        if (user?.Hobbies == null || user?.Hobbies.Count == 0 || user == null || otherUser == null || otherUser.Hobbies == null)
+        {
+
+            Console.WriteLine("IN GETMATCHPERCENTAGE IF!!!");
+            return 0;
+        }
+        else
+        {
+            Console.WriteLine("IN GETMATCHPERCENTAGE ELSE!!!");
+            return 100 * user.Hobbies.Intersect(otherUser.Hobbies).ToList<Hobby>().Count / user.Hobbies.Count;
+        }
+
+    }
+
+    // OLIVIA YOU NEED TO TEST THIS!!!
+    public async Task<List<float>> GetMatchPercentages(ApplicationDbContext db, AuthenticationStateProvider authProvider, List<ApplicationUser> otherUsers)
+    {
+        List<float> percentages = new List<float>();
+        var user = await GetCurrentUser(authProvider, db);
+
+        for (int i = 0; i < otherUsers.Count; i++)
+        {
+            var otherUser = otherUsers[i];
+            if (user?.Hobbies == null || user?.Hobbies.Count == 0 || user == null || otherUser == null || otherUser.Hobbies == null)
+            {
+                percentages.Add(0);
+            }
+            else
+            {
+                percentages.Add(100 * user.Hobbies.Intersect(otherUser.Hobbies).ToList<Hobby>().Count / user.Hobbies.Count);
+            }
+        }
+        return percentages;
     }
 }

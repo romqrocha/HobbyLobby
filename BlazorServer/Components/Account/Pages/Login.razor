@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
 @using BlazorServer.Data
+@using Microsoft.EntityFrameworkCore
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject ILogger<Login> Logger
@@ -86,7 +87,12 @@
         if (Input.Username.Contains('@') && Input.Username.Contains('.')) {
             string email = Input.Username;
             withEmail = true;
-            usernameFromEmail = Db.Users.Where(u => u.Email == email).First()?.UserName ?? "";
+
+            var userFromEmail = await Db.Users.Where(
+                u => u.Email == email
+            ).FirstOrDefaultAsync();
+            
+            usernameFromEmail = userFromEmail?.UserName ?? "";
         }
 
         string username = withEmail ? usernameFromEmail : Input.Username;
@@ -97,7 +103,7 @@
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
-            RedirectManager.RedirectTo(ReturnUrl);
+            RedirectManager.RedirectTo(ReturnUrl ?? "profile");
         }
         else if (result.RequiresTwoFactor)
         {

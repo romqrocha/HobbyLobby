@@ -68,6 +68,13 @@
     {
         List<Action<ApplicationUser>> updateQueue = new();
 
+        if (string.IsNullOrWhiteSpace(Input.DisplayName)) {
+            Input.DisplayName = null;
+        }
+        if (string.IsNullOrWhiteSpace(Input.Country)) {
+            Input.Country = null;
+        }
+
         if (Input.DisplayName != displayName) 
         {
             updateQueue.Add(dbUser => dbUser.DisplayName = Input.DisplayName);

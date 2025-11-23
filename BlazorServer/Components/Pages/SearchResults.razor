@@ -9,7 +9,7 @@
 @inject HobbyService hobbyService
 @inject IUserService userService
 @inject ApplicationDbContext Db
-
+@inject AuthenticationStateProvider authProvider
 
 
 <PageTitle>Search Results</PageTitle>
@@ -19,11 +19,9 @@
 
 <div id="cardContainer" class="d-flex flex-row bd-highlight mb-3 justify-content-between flex-wrap">
 
-        @foreach (var user in userList)
+        @for(int i=0; i < userList.Count; i++)
         {
-            
-            <ProfileCard ProfileUser=@user />
-            
+            <ProfileCard ProfileUser=@userList[i] matchPercent=@matchPercents[i] />
         }
 </div>
 
@@ -34,6 +32,8 @@
     public string? SearchText {get; set;}
 
     private List<ApplicationUser> userList = new List<ApplicationUser>();
+
+    private List<float> matchPercents = new List<float>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -50,6 +50,8 @@
 
         // filter the user list
         userList = dbUsers.Where(user => user.Hobbies?.Intersect(dbHobbies).ToList().Count > 0).ToList();
+
+        matchPercents = await userService.GetMatchPercentages(Db, authProvider, userList);
     }
 
 }
