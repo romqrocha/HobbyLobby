@@ -88,26 +88,20 @@ public class UserService : IUserService
             .FirstAsync();
     }
 
-    // OLIVIA YOU NEED TO TEST THIS!!!
     public async Task<float> GetMatchPercentage(ApplicationDbContext db, AuthenticationStateProvider authProvider, ApplicationUser otherUser)
     {
-        Console.WriteLine("IN GETMATCHPERCENTAGE!!!");
         var user = await GetCurrentUser(authProvider, db);
         if (user?.Hobbies == null || user?.Hobbies.Count == 0 || user == null || otherUser == null || otherUser.Hobbies == null)
         {
-
-            Console.WriteLine("IN GETMATCHPERCENTAGE IF!!!");
             return 0;
         }
         else
         {
-            Console.WriteLine("IN GETMATCHPERCENTAGE ELSE!!!");
             return 100 * user.Hobbies.Intersect(otherUser.Hobbies).ToList<Hobby>().Count / user.Hobbies.Count;
         }
 
     }
 
-    // OLIVIA YOU NEED TO TEST THIS!!!
     public async Task<List<float>> GetMatchPercentages(ApplicationDbContext db, AuthenticationStateProvider authProvider, List<ApplicationUser> otherUsers)
     {
         List<float> percentages = new List<float>();
