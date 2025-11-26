@@ -1,7 +1,425 @@
 HobbyId,HobbyName
-1,Piano
-2,Soccer
-3,Painting
-4,Running
-5,Tennis
-6,Puzzles
+1,🪂Air sports
+2,🔫Airsoft
+3,🪨Amateur geology
+4,🎢Amusement park visiting
+5,🏹Archery
+6,🧽Auto detailing
+7,🚗Automobilism
+8,🔭Astronomy
+9,🎒Backpacking
+10,🏸Badminton
+11,🪂BASE jumping
+12,⚾Baseball
+13,🏀Basketball
+14,🏖️Beachcombing
+15,🐝Beekeeping
+16,🐦Birdwatching
+17,⚒️Blacksmithing
+18,🚴‍♂️BMX
+19,🏄‍♂️Board sports
+20,🏋️Bodybuilding
+21,🚌Bus riding
+22,🏕️Camping
+23,🛶Canoeing
+24,🧗‍♂️Canyoning
+25,🐦Carrier pigeons
+26,🚗Car riding
+27,⚙️Car tuning
+28,🕳️Caving
+29,🏙️City trip
+30,🧗Climbing
+31,🌱Composting
+32,🏏Croquet
+33,🚴Cycling
+34,🐄Dairy Farming
+35,🎩Dandyism
+36,🎯Darts
+37,🤾Dodgeball
+38,🐕‍🦺Dog training
+39,🐕Dog walking
+40,🔮Dowsing
+41,🚘Driving
+42,🚜Farming
+43,🎣Fishing
+44,🏈Flag football
+45,🌸Flower growing
+46,✈️Flying
+47,🥏Flying disc
+48,🛩️Flying model planes
+49,🍄Foraging
+50,⛏️Fossicking
+51,⚽Freestyle football
+52,🍎Fruit picking
+53,🌿Gardening
+54,📍Geocaching
+55,👻Ghost hunting
+56,⛏️Gold prospecting
+57,🎨Graffiti
+58,⚽Groundhopping
+59,🌱Guerrilla gardening
+60,🤸Gymnastics
+61,🤾‍♂️Handball
+62,🌿Herbalism
+63,🦎Herping
+64,🚀High-power rocketry
+65,🥾Hiking
+66,🐴Hobby horsing
+67,🕳️Hobby tunneling
+68,🟠Hooping
+69,🐎Horseback riding
+70,🎯Hunting
+71,🛼Inline skating
+72,🏃Jogging
+73,🪢Jumping rope
+74,🏎️Karting
+75,🛶Kayaking
+76,🪁Kite flying
+77,🏄‍♂️Kitesurfing
+78,🥍Lacrosse
+79,🧙‍♂️LARPing
+80,📬Letterboxing
+81,📸Lomography
+82,🛹Longboarding
+83,🥋Martial arts
+84,🧲Magnet fishing
+85,🪙Metal detecting
+86,🏍️Motorcycling
+87,🌦️Meteorology
+88,🏁Motor sports
+89,🚵Mountain biking
+90,🗻Mountaineering
+91,🏛️Museum visiting
+92,🍄Mushroom hunting/mycology
+93,🏐Netball
+94,🐟Noodling
+95,⛸️Nordic skating
+96,🧭Orienteering
+97,🔫Paintball
+98,🪂Paragliding
+99,🤸‍♂️Parkour
+100,📸Photography
+101,🥒Pickleball
+102,🧺Picnicking
+103,🎙️Podcast hosting
+104,🐴Polo
+105,🏋️‍♂️Powerlifting
+106,🚌Public transport riding
+107,🧘Qigong
+108,🎮Radio-controlled model playing
+109,🛶Rafting
+110,🚂Railway journeys
+111,🚆Railway modelling
+112,🧗‍♂️Rappelling
+113,🏰Renaissance fair
+114,🔧Renovating
+115,🚴‍♂️Road biking
+116,🧗Rock climbing
+117,🎨Rock painting
+118,🛼Roller skating
+119,🏐Roundnet
+120,🏉Rugby
+121,🏃Running
+122,🦁Safari
+123,⛵Sailing
+124,🏖️Sand art
+125,⚜️Scouting
+126,🤿Scuba diving
+127,🚣Sculling or rowing
+128,🔫Shooting
+129,🛍️Shopping
+130,🟦Shuffleboard
+131,🛹Skateboarding
+132,🎿Skiing
+133,🏄‍♂️Skimboarding
+134,🪂Skydiving
+135,🧵Slacklining
+136,🛷Sledding
+137,🤿Snorkeling
+138,🏂Snowboarding
+139,❄️Snowmobiling
+140,🥾Snowshoeing
+141,⚽Soccer
+142,🪨Stone skipping
+143,🌪️Storm chasing
+144,🌞Sun bathing
+145,🏄Surfing
+146,🗡️Survivalism
+147,🏊Swimming
+148,🏓Table tennis playing
+149,🥋Taekwondo
+150,🧘‍♂️Tai chi
+151,🎾Tennis
+152,🥾Thru-hiking
+153,🌳Topiary
+154,🌍Tourism
+155,🏬Trade fair visiting
+156,✈️Travel
+157,🚴‍♀️Unicycling
+158,🏚️Urban exploration
+159,🏖️Vacation
+160,🥕Vegetable farming
+161,🔧Vehicle restoration
+162,🎥Videography
+163,🏐Volleyball
+164,🤝Volunteering
+165,🚶Walking
+166,🌊Water sports
+167,🦓Zoo visiting
+168,🏺Archaeology
+169,🏛️Architecture
+170,🔭Astronomy
+171,🎞️Animation
+172,🚀Aerospace
+173,🧬Biology
+174,🌿Botany
+175,💼Business
+176,⚗️Chemistry
+177,🚀Entrepreneurship
+178,💰Finance
+179,🗺️Geography
+180,📜History
+181,🗣️Linguistics
+182,📚Literature
+183,➗Mathematics
+184,🩺Medical science
+185,🦠Microbiology
+186,🍄Mycology
+187,🐜Myrmecology
+188,🧠Neuroscience
+189,🤔Philosophy
+190,🔬Physics
+191,🧠Psychology
+192,🚆Railway studies
+193,⛪Religious studies
+194,🔎Research
+195,🧪Science and technology studies
+196,🌍Social studies
+197,👥Sociology
+198,🏅Sports science
+199,✍️Story writing
+200,🧬Life science
+201,📚Teaching
+202,💻Web design
+203,🛠️Engineering
+204,⚖️Jurisprudential
+205,📰Publishing
+206,📝Wikipedia editing
+207,🧸Action figure
+208,🏺Antiquing
+209,🐜Ant-keeping
+210,🖼️Art collecting
+211,📚Book collecting
+212,🔘Button collecting
+213,🃏Cartophily (card collecting)
+214,🪙Coin collecting
+215,📚Comic book collecting
+216,💿Compact discs
+217,🔮Crystals
+218,💌Deltiology (postcard collecting)
+219,🚗Die-cast toy
+220,💾Digital hoarding
+221,🪆Dolls
+222,🧪Element collecting
+223,📜Ephemera collecting
+224,🎬Films
+225,🖐️Fingerprint collecting
+226,📞Fusilately (phonecard collecting)
+227,🔪Knife collecting
+228,📍Lapel pins
+229,🎟️Lotology (lottery ticket collecting)
+230,🎞️Movie memorabilia collecting
+231,💵Notaphily (banknote collecting)
+232,🌸Perfume
+233,📮Philately
+234,🕯️Phillumeny
+235,🎮Radio-controlled model collecting
+236,🚆Rail transport modelling
+237,💽Record collecting
+238,🪨Rock tumbling
+239,🏁Scutelliphily
+240,👟Shoes
+241,🏎️Slot car
+242,🏆Sports memorabilia
+243,📮Stamp collecting
+244,🧸Stuffed toy collecting
+245,🫖Tea bag collecting
+246,🎫Ticket collecting
+247,🗺️Transit map collecting
+248,🎮Video game collecting
+249,🚗Vintage cars
+250,👗Vintage clothing
+251,📀Vinyl records
+252,🏺Antiquities
+253,🔊Auto audiophilia
+254,🌸Flower collecting and pressing
+255,🦴Fossil hunting
+256,🪳Insect collecting
+257,🍃Leaves
+258,🧲Magnet fishing
+259,🪙Metal detecting
+260,⛏️Mineral collecting
+261,🪨Rock balancing
+262,🟦Sea glass collecting
+263,🐚Seashell collecting
+264,🪨Stone collecting
+265,🏒Air hockey
+266,🐕Animal fancy
+267,🪓Axe throwing
+268,🎲Backgammon
+269,🏸Badminton
+270,🧁Baking
+271,🩰Ballet dancing
+272,💃Ballroom dancing
+273,🎗️Baton twirling
+274,👑Beauty pageants
+275,🎱Billiards
+276,📘Book folding
+277,🎳Bowling
+278,🥊Boxing
+279,🃏Bridge
+280,🍳Cooking
+281,♟️Checkers (draughts)
+282,📣Cheerleading
+283,♟️Chess
+284,🚩Color guard
+285,♣️Cribbage
+286,🥌Curling
+287,💃Dancing
+288,🎯Darts
+289,🗣️Debate
+290,🁬Dominoes
+291,🍽️Eating
+292,🎮Esports
+293,🤺Fencing
+294,⛸️Figure Skating
+295,⚫Go
+296,🤸Gymnastics
+297,🏒Ice hockey
+298,⛸️Ice skating
+299,🥋Judo
+300,🥋Jujitsu
+301,🤼Kabaddi
+302,🔠Knowledge/word games
+303,🔫Laser tag
+304,✨Magic
+305,🀄Mahjong
+306,🔵Marbles
+307,🥋Martial arts
+308,🏎️Model racing
+309,🌐Model United Nations
+310,🎰Pinball
+311,🃏Poker
+312,💃Pole dancing
+313,🎱Pool
+314,🎮Radio-controlled model playing
+315,🎲Role-playing games
+316,🧵Rughooking
+317,♟️Shogi
+318,🏎️Slot car racing
+319,🧩Speedcubing
+320,🧱Sport stacking
+321,⚽Table football
+322,🏓Table tennis
+323,🏐Volleyball
+324,🎮Video gaming
+325,🕶️VR gaming
+326,🏋️Weightlifting
+327,🤼Wrestling
+328,🔫Airsoft
+329,🏹Archery
+330,⚽Association football
+331,🏉Australian rules football
+332,🏎️Auto racing
+333,⚾Baseball
+334,🏖️Beach volleyball
+335,🕺Breakdancing
+336,🥋Capoeira
+337,🧗Climbing
+338,🟩Cornhole
+339,🏏Cricket
+340,🏏Croquet
+341,🚴Cycling
+342,🥏Disc golf
+343,🐕Dog sport
+344,🐎Equestrianism
+345,🪖Exhibition drill
+346,🏑Field hockey
+347,⛸️Figure skating
+348,🎣Fishing
+349,💪Fitness
+350,🥏Footbag
+351,🥏Frisbee
+352,🏉Rugby league football
+353,🚣Sculling or rowing
+354,🎯Shooting sports
+355,🛹Skateboarding
+356,🎿Skiing
+357,🐕‍🦺Sled dog racing
+358,🥎Softball
+359,⛸️Speed skating
+360,🎾Squash
+361,🏄Surfing
+362,🏊Swimming
+363,🏓Table tennis
+364,🎾Tennis
+365,🎾Tennis polo
+366,🚗Tether car
+367,⛸️Tour skating
+368,🌍Tourism
+369,🎯Trapshooting
+370,🏊‍♂️Triathlon
+371,🥏Ultimate frisbee
+372,🏐Volleyball
+373,🤽Water polo
+374,🏌️Golfing
+375,🤾Handball
+376,🐎Horseback riding
+377,🐴Horsemanship
+378,🐎Horseshoes
+379,🛶Iceboat racing
+380,🎯Jukskei
+381,🏎️Kart racing
+382,🔪Knife throwing
+383,🥍Lacrosse
+384,🛹Longboarding
+385,🏃‍♂️Long-distance running
+386,🥁Marching band
+387,⛳Mini Golf
+388,🛩️Model aircraft
+389,🧭Orienteering
+390,🥒Pickleball
+391,🚤Powerboat racing
+392,🏆Quidditch
+393,🚶‍♂️Race walking
+394,🎾Racquetball
+395,🚗Radio-controlled car racing
+396,🎮Radio-controlled model playing
+397,🛼Roller derby
+398,🎧Audiophile
+399,🐜Ant farming
+400,🐠Fishkeeping
+401,📘Learning
+402,🧘Meditation
+403,🔬Microscopy
+404,📖Reading
+405,🔎Research
+406,📻Shortwave listening
+407,🛩️Aircraft spotting
+408,🔭Amateur astronomy
+409,🐝Beekeeping
+410,📊Benchmarking
+411,🐦Birdwatching
+412,🚌Bus spotting
+413,👀People-watching
+414,📸Photography
+415,📡Satellite watching
+416,🚆Trainspotting
+417,🐋Whale watching
+418,🦋Butterfly watching
+419,📍Geocaching
+420,👀Gongoozling
+421,🦎Herping
+422,🥾Hiking/backpacking
+423,🌦️Meteorology
+424,💀Quake
