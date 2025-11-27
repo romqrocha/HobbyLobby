@@ -5,6 +5,7 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @using Microsoft.EntityFrameworkCore
 @using BlazorServer.Data
+@using Microsoft.EntityFrameworkCore.ChangeTracking
 @inject NavigationManager navigationManager
 
 @rendermode InteractiveServer
@@ -81,7 +82,7 @@
                 }
             </div>
                     <textarea class="input-lg" placeholder="enter your comment" @bind="@newMessage"></textarea>
-        <button class="btn btn-default" @onclick="@(() => SendAsync(chatGroupName ?? "", newMessage))">Send</button>
+        <button class="btn btn-default" @onclick="@(() => SendMessage(chatGroupName ?? "", newMessage))">Send</button>
         }
         else
         {
@@ -147,6 +148,10 @@
         _hubConnection = new HubConnectionBuilder()
         .WithUrl(_hubUrl)
         .Build();
+
+         @* _hubConnection.On<string, string>("SendMessageToGroup", ReceiveMessage); *@
+
+         _hubConnection.On<string, string, string>("ReceiveMessage", async (groupName, message, sentUserID) => await ReceiveMessage(groupName, message, sentUserID));
 
         // These may be necessary, but let's see
         @* _hubConnection.On<string, string>("SendMessageToGroup", SendAsync);
@@ -276,14 +281,14 @@
     }
 
     // Send message with SignalR
-    private async Task SendAsync(string groupName, string message)
+    private async Task SendMessage(string groupName, string message)
     {
         Console.WriteLine("In SendAsync!!!");
         Console.WriteLine(groupName);
 
         if (groupName != null && groupName != "")
         {
-                    await _hubConnection.SendAsync("SendMessageToGroup", groupName, message);
+                    await _hubConnection.SendAsync("SendMessageToGroup", groupName, message, currentUserId);
 
         // Create a new message
         Message messageObj = new Message
@@ -298,14 +303,50 @@
         };
 
         // Add message to DB
-        
+        EntityEntry<Message> newEntry = DbContext.Messages.Add(messageObj);
+        await DbContext.SaveChangesAsync();
 
         // display message in UI
-        messages!.Add(messageObj);
+        @* messages!.Add(messageObj); *@
         @* await InvokeAsync(StateHasChanged); *@
 
         }
 
         
     }
+
+     // Send message with SignalR
+    public async Task ReceiveMessage(string groupName, string message, string sentUserID)
+    {
+        Console.WriteLine("HEY In ReceiveAsync!!!");
+        Console.WriteLine(groupName);
+
+        if (groupName != null && groupName != "" && groupName == chatGroupName)
+        {
+        
+
+        // Create a new message
+        Message messageObj = new Message
+        {
+            SentUserId =  sentUserID,
+            SentUser = await userService.GetFromId(DbContext, sentUserID) ?? defaultUser,
+            ChatID = selectedChatId ?? 0,
+            Chat = selectedChat!,
+            MessageContent = message,
+            SentDate = "",
+            SentTime = ""
+        };
+
+        // display message in UI
+        messages!.Add(messageObj);
+        await InvokeAsync(StateHasChanged);
+
+        }
+
+        
+    }
+
+
+    
+
 }

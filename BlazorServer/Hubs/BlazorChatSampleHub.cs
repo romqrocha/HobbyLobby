@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using BlazorServer.Data;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BlazorServer.Hubs;
@@ -26,22 +27,22 @@ namespace BlazorServer.Hubs;
 
         // To send message to a group
         // Group name will be the to string of the chatID
-        public async Task SendMessageToGroup(string groupName, string message)
+        public async Task SendMessageToGroup(string groupName, string message, string sentUserID)
     {
         Console.WriteLine("THE HUB IS HERE. THE CHAT IS CALLED: " + groupName);
-        await Clients.Groups(groupName).SendAsync("Chat", Context.ConnectionId, message);
+        await Clients.Groups(groupName).SendAsync("ReceiveMessage", groupName, message, sentUserID);
     }
 
     // I think we need to do this every time 
     public async Task AddToGroup(string groupName)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-        await Clients.Group(groupName).SendAsync("Send", $"{Context.ConnectionId} has joined");
+        Console.WriteLine($"{Context.ConnectionId} has joined");
     }
 
     public async Task RemoveFromGroup(string groupName)
     {
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
-        await Clients.Group(groupName).SendAsync("Send", $"{Context.ConnectionId} has left");
+        Console.WriteLine($"{Context.ConnectionId} has left");
     }
     }
