@@ -19,7 +19,11 @@ public interface IUserService
 
     void RedirectToLogin(NavigationManager navManager);
 
+    void RedirectToBcitEmail(NavigationManager navManager);
+
     Task<ApplicationUser?> GetFromUsername(ApplicationDbContext db, string username);
+
+    Task<ApplicationUser?> GetFromId(ApplicationDbContext db, string id);
 
     Task<List<ApplicationUser>> GetAllUsers(ApplicationDbContext db);
 
@@ -79,6 +83,11 @@ public class UserService : IUserService
         navManager.NavigateTo($"Account/Login?returnUrl={Uri.EscapeDataString(navManager.Uri)}");
     }
 
+    public void RedirectToBcitEmail(NavigationManager navManager)
+    {
+        navManager.NavigateTo($"Account/Manage/OrganizationalEmail");
+    }
+
     public async Task<ApplicationUser?> GetFromUsername(ApplicationDbContext db, string username)
     {
         return await db
@@ -86,6 +95,11 @@ public class UserService : IUserService
             .Include(u => u.Hobbies)
             .Where(u => u.UserName != null && u.UserName.ToLower().Equals(username.ToLower()))
             .FirstAsync();
+    }
+
+    public async Task<ApplicationUser?> GetFromId(ApplicationDbContext db, string id)
+    {
+        return await db.Users.FirstOrDefaultAsync(u => u.Id == id);
     }
 
     public async Task<float> GetMatchPercentage(ApplicationDbContext db, AuthenticationStateProvider authProvider, ApplicationUser otherUser)
