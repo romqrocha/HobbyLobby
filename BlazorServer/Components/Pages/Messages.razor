@@ -1,10 +1,19 @@
-@page "/messages"
+@page "/messages/{username:nonfile?}"
+@using BlazorServer.Hubs
+@using BlazorServer.Services
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.SignalR.Client
 @using Microsoft.EntityFrameworkCore
 @using BlazorServer.Data
+@inject NavigationManager navigationManager
+
+@rendermode InteractiveServer
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ApplicationDbContext DbContext
+@inject IChatService chatService
+@inject IUserService userService
+@inject NavigationManager navManager
 
 <PageTitle>Messages</PageTitle>
 
@@ -23,7 +32,7 @@
                     var lastMessage = DbContext.Messages.Where(m => m.ChatID == chat.ChatId).OrderByDescending(m => m.SentDate).ThenByDescending(m => m.SentTime).FirstOrDefault();
                     
                     <div class="chat-item @(selectedChatId == chat.ChatId ? "active" : "")" @onclick="() => SelectChat(chat.ChatId)">
-                        <img src="@(otherUser?.ProfilePictureURL ?? "/pfp/default-avatar.png")" alt="User" class="chat-avatar" />
+                        <img src="@(otherUser?.ProfilePictureURL ?? defaultUser.ProfilePictureURL)" alt="User" class="chat-avatar" />
                         <div class="chat-info">
                             <div class="chat-name">@(otherUser?.DisplayName ?? otherUser?.UserName ?? "Unknown")</div>
                             <div class="chat-preview">@(lastMessage?.MessageContent ?? "No messages yet")</div>
@@ -47,7 +56,7 @@
             var otherUser = selectedChat.UserIds?.FirstOrDefault(u => u.Id != currentUserId);
             
             <div class="chat-header">
-                <img src="@(otherUser?.ProfilePictureURL ?? "/pfp/default-avatar.png")" alt="User" class="header-avatar" />
+                <img src="@(otherUser?.ProfilePictureURL ?? defaultUser.ProfilePictureURL)" alt="User" class="header-avatar" />
                 <h5>@(otherUser?.DisplayName ?? otherUser?.UserName ?? "Unknown")</h5>
             </div>
 
@@ -61,7 +70,7 @@
                         <div class="message @(isCurrentUser ? "sent" : "received")">
                             @if (!isCurrentUser)
                             {
-                                <img src="@(message.SentUser?.ProfilePictureURL ?? "/pfp/default-avatar.png")" alt="User" class="message-avatar" />
+                                <img src="@(message.SentUser?.ProfilePictureURL ?? defaultUser.ProfilePictureURL)" alt="User" class="message-avatar" />
                             }
                             <div class="message-content">
                                 <div class="message-text">@message.MessageContent</div>
@@ -71,6 +80,8 @@
                     }
                 }
             </div>
+                    <textarea class="input-lg" placeholder="enter your comment" @bind="@newMessage"></textarea>
+        <button class="btn btn-default" @onclick="@(() => SendAsync(chatGroupName ?? "", newMessage))">Send</button>
         }
         else
         {
@@ -82,22 +93,68 @@
 </div>
 
 @code {
+    /// <summary>
+    /// Username of the person who this user is currently trying to chat with.
+    /// </summary>
+    [Parameter]
+    public string? Username { get; set; }
+
+    private ApplicationUser? currentUser;
     private string? currentUserId;
     private List<Chat>? chats;
     private Chat? selectedChat;
     private int? selectedChatId;
     private List<Message>? messages;
+    private ApplicationUser defaultUser => userService.DefaultUser;
+
+    // SignalR data
+    private string? newMessage;
+    private string? _hubUrl;
+    HubConnection? _hubConnection;
+
+    private string? chatGroupName;
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = await UserManager.GetUserAsync(authState.User);
+        currentUser = user;
+
+        messages = new List<Message>();
         
-        if (user != null)
+        if (user == null)
         {
-            currentUserId = user.Id;
-            await LoadChats();
+            // not logged in
+            return;
         }
+
+        currentUserId = user.Id;
+
+        if (Username == user.UserName) {
+            // trying to message yourself
+
+            // just gonna lazily return for now to avoid weird bugs
+            return;
+        }
+
+        
+
+        // SignalR stuff lets goooo
+                // SignalR : connect the hub
+        string baseUrl = navigationManager.BaseUri;
+
+        _hubUrl = baseUrl.TrimEnd('/') + BlazorChatSampleHub.HubUrl;
+        _hubConnection = new HubConnectionBuilder()
+        .WithUrl(_hubUrl)
+        .Build();
+
+        // These may be necessary, but let's see
+        @* _hubConnection.On<string, string>("SendMessageToGroup", SendAsync);
+        _hubConnection.On<string, string>("SendMessageToGroup", SendAsync); *@
+
+        await _hubConnection.StartAsync();
+
+        await LoadChats();
     }
 
     private async Task LoadChats()
@@ -107,7 +164,52 @@
             .Where(c => c.UserIds.Any(u => u.Id == currentUserId))
             .ToListAsync();
 
-        if (chats.Any())
+        if (Username is not null) 
+        {
+            // Username was passed from url params
+            
+            if (currentUser is null) 
+            {
+                userService.RedirectToLogin(navManager);
+                return;
+            } 
+
+            if (currentUser.BcitEmailIsVerified == false) 
+            {
+                // user is trying to message without being a verified student
+                userService.RedirectToBcitEmail(navManager);
+                return;
+            }
+
+            ApplicationUser? otherUser = await userService.GetFromUsername(DbContext, Username);
+
+            if (otherUser is null) 
+            {
+                // couldn't find the specified user, lazily exiting page
+                navManager.NavigateTo("/");
+                return;
+            }
+
+            if (otherUser.BcitEmailIsVerified == false) {
+                // other user is not a verified student, lazily exiting page
+                navManager.NavigateTo("/");
+                return;
+            }
+
+            List<string> chatMemberIds = [currentUser.Id, otherUser.Id];
+            Chat chosenChat;
+            try 
+            {
+                chosenChat = await chatService.NewUniqueChatFromUserIds(chatMemberIds);
+            } 
+            catch (InvalidOperationException)
+            {
+                chosenChat = (await chatService.FindChatFromUserIds(chatMemberIds))!;
+            }
+
+            await SelectChat(chosenChat.ChatId);
+        }
+        else if (chats.Any())
         {
             await SelectChat(chats.First().ChatId);
         }
@@ -115,8 +217,15 @@
 
     private async Task SelectChat(int chatId)
     {
+        // SignalR stuff
+        if (chatGroupName != null && chatGroupName != ""){
+            Console.WriteLine("gotta remove the client from current group");
+            await _hubConnection.SendAsync("RemoveFromGroup", chatGroupName);
+        }
+
         selectedChatId = chatId;
         selectedChat = chats?.FirstOrDefault(c => c.ChatId == chatId);
+        chatGroupName = "Chat_" + chatId;
         
         if (selectedChat != null)
         {
@@ -126,7 +235,13 @@
                 .OrderBy(m => m.SentDate)
                 .ThenBy(m => m.SentTime)
                 .ToListAsync();
+
+            
         }
+
+        // SignalR stuff
+        Console.WriteLine("now we add the client to the group");
+        await _hubConnection.SendAsync("AddToGroup", chatGroupName);
     }
 
     private string GetTimeAgo(string? date, string? time)
@@ -158,5 +273,39 @@
         }
         
         return time;
+    }
+
+    // Send message with SignalR
+    private async Task SendAsync(string groupName, string message)
+    {
+        Console.WriteLine("In SendAsync!!!");
+        Console.WriteLine(groupName);
+
+        if (groupName != null && groupName != "")
+        {
+                    await _hubConnection.SendAsync("SendMessageToGroup", groupName, message);
+
+        // Create a new message
+        Message messageObj = new Message
+        {
+            SentUserId = currentUserId!,
+            SentUser = currentUser!,
+            ChatID = selectedChatId ?? 0,
+            Chat = selectedChat!,
+            MessageContent = message,
+            SentDate = "",
+            SentTime = ""
+        };
+
+        // Add message to DB
+        
+
+        // display message in UI
+        messages!.Add(messageObj);
+        @* await InvokeAsync(StateHasChanged); *@
+
+        }
+
+        
     }
 }

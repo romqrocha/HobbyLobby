@@ -28,6 +28,7 @@ namespace BlazorServer.Hubs;
         // Group name will be the to string of the chatID
         public async Task SendMessageToGroup(string groupName, string message)
     {
+        Console.WriteLine("THE HUB IS HERE. THE CHAT IS CALLED: " + groupName);
         await Clients.Groups(groupName).SendAsync("Chat", Context.ConnectionId, message);
     }
 

@@ -50,6 +50,7 @@ builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
 // Other services
 builder.Services.AddScoped<HobbyService>();
 builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddTransient<IChatService, ChatService>();
 
 // SignalR
 builder.Services.AddSignalR();
