@@ -1,5 +1,7 @@
 using System;
+using BlazorServer.Components.Pages;
 using BlazorServer.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace BlazorServer.Services;
@@ -51,6 +53,16 @@ public class MessageService
     {
         EntityEntry<Message> newEntry = _context.Messages.Add(msg);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<Message>> GetChatMessages(int chatId)
+    {
+        return await _context.Messages
+            .Include(m => m.SentUser)
+            .Where(m => m.ChatID == chatId)
+            .OrderBy(m => m.SentDate)
+            .ThenBy(m => m.SentTime)
+            .ToListAsync();
     }
 
 }

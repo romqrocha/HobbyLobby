@@ -19,6 +19,7 @@
 
 @inject MessageService messageService
 
+
 <PageTitle>Messages</PageTitle>
 
 <div class="messaging-container">
@@ -152,8 +153,7 @@
 
 
 
-        // SignalR stuff lets goooo
-        // SignalR : connect the hub
+        // SignalR stuff
         string baseUrl = navigationManager.BaseUri;
 
         _hubUrl = baseUrl.TrimEnd('/') + ChatHub.HubUrl;
@@ -161,14 +161,8 @@
         .WithUrl(_hubUrl)
         .Build();
 
-        @* _hubConnection.On<string, string>("SendMessageToGroup", ReceiveMessage); *@
-
         _hubConnection.On<string, string, string>("ReceiveMessage", async (groupName, message, sentUserID) => await
         ReceiveMessage(groupName, message, sentUserID));
-
-        // These may be necessary, but let's see
-        @* _hubConnection.On<string, string>("SendMessageToGroup", SendAsync);
-        _hubConnection.On<string, string>("SendMessageToGroup", SendAsync); *@
 
         await _hubConnection.StartAsync();
 
@@ -249,12 +243,14 @@
 
         if (selectedChat != null)
         {
-            messages = await DbContext.Messages
+            @* messages = await DbContext.Messages
             .Include(m => m.SentUser)
             .Where(m => m.ChatID == chatId)
             .OrderBy(m => m.SentDate)
             .ThenBy(m => m.SentTime)
-            .ToListAsync();
+            .ToListAsync(); *@
+
+            messages = await messageService.GetChatMessages(chatId);
 
 
         }
@@ -305,29 +301,9 @@
         {
             await _hubConnection.SendAsync("SendMessageToGroup", groupName, message, currentUserId);
 
-            // Create a new message
-            @* Message messageObj = new Message
-        {
-            SentUserId = currentUserId!,
-            SentUser = currentUser!,
-            ChatID = selectedChatId ?? 0,
-            Chat = selectedChat!,
-            MessageContent = message,
-            SentDate = "",
-            SentTime = ""
-        }; *@
-
             Message messageObj = messageService.CreateNewMessage(currentUser ?? defaultUser, selectedChat!, message);
 
-            // Add message to DB
-            @* EntityEntry<Message> newEntry = DbContext.Messages.Add(messageObj);
-        await DbContext.SaveChangesAsync(); *@
-
             await messageService.InsertNewMessage(messageObj);
-
-            // display message in UI
-            @* messages!.Add(messageObj); *@
-            @* await InvokeAsync(StateHasChanged); *@
 
         }
 
@@ -343,18 +319,6 @@
         if (groupName != null && groupName != "" && groupName == chatGroupName)
         {
 
-
-            // Create a new message
-            @* Message messageObj = new Message
-        {
-            SentUserId =  sentUserID,
-            SentUser = await userService.GetFromId(DbContext, sentUserID) ?? defaultUser,
-            ChatID = selectedChatId ?? 0,
-            Chat = selectedChat!,
-            MessageContent = message,
-            SentDate = "",
-            SentTime = ""
-        }; *@
             ApplicationUser sentUser = await userService.GetFromId(DbContext, sentUserID) ?? defaultUser;
 
             Message messageObj = messageService.CreateNewMessage(sentUser, selectedChat!, message);
