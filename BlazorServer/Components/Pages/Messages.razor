@@ -18,6 +18,7 @@
 @inject NavigationManager navManager
 
 @inject MessageService messageService
+@implements IAsyncDisposable
 
 
 <PageTitle>Messages</PageTitle>
@@ -330,6 +331,12 @@
         }
 
 
+    } 
+
+    public async ValueTask DisposeAsync(){
+        if (_hubConnection is not null){
+            await _hubConnection.DisposeAsync();
+        }
     }
 
 
