@@ -4,7 +4,7 @@ using BlazorServer.Data;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BlazorServer.Hubs;
-    public class BlazorChatSampleHub : Hub
+    public class ChatHub : Hub
     {
         public const string HubUrl = "/chat";
 

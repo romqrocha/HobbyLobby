@@ -51,6 +51,7 @@ builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
 builder.Services.AddScoped<HobbyService>();
 builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<IChatService, ChatService>();
+builder.Services.AddScoped<MessageService>();
 
 // SignalR
 builder.Services.AddSignalR();
@@ -58,7 +59,7 @@ builder.Services.AddSignalR();
 var app = builder.Build();
 
 // SignalR
-app.MapHub<BlazorChatSampleHub>(BlazorChatSampleHub.HubUrl);
+app.MapHub<ChatHub>(ChatHub.HubUrl);
 
 
 // Configure the HTTP request pipeline.
