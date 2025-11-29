@@ -78,14 +78,22 @@
                             Message
                         </a>
                     }
-                    else
+                    else if (ShowVerifyEmailButton)
                     {
                         <a href="/Account/Manage/OrganizationalEmail"
-                            class="@(actionButton) fw-bold"
+                            class="btn btn-secondary d-flex flex-row px-3 responsive-text-sm text-nowrap"
                             style="width:fit-content;" 
-                            disabled
                         >
-                            <i class="bi bi-envelope">&nbsp;</i>
+                            <i class="bi bi-lock">&nbsp;</i>
+                            Message
+                        </a>
+                    }
+                    else {
+                        <a
+                            class="btn btn-outline-secondary d-flex flex-row px-3 responsive-text-sm text-nowrap"
+                            style="width:fit-content;" 
+                        >
+                            <i class="bi bi-lock">&nbsp;</i>
                             Message
                         </a>
                     }
