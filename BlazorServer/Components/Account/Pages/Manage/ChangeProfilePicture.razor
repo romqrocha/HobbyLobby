@@ -1,6 +1,7 @@
 ﻿@page "/Account/Manage/ProfilePicture"
 
 @using System.ComponentModel.DataAnnotations
+@using BlazorServer.Services
 @using Microsoft.AspNetCore.Identity
 @using BlazorServer.Data
 @using Microsoft.AspNetCore.Identity.EntityFrameworkCore
@@ -11,6 +12,7 @@
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
 @inject ApplicationDbContext Db
+@inject IUserService userService
 
 <PageTitle>Profile</PageTitle>
 
@@ -22,13 +24,29 @@
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
             <div class="mb-3">
-                <img src="@shownPfpUrl" class="rounded img-fluid" alt="Your profile picture"/>
+                <img src="@shownPfpUrl" class="rounded img-fluid" alt=@Input.ProfilePictureUrl/>
             </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.ProfilePictureUrl" id="Input.ProfilePictureUrl" class="form-control" placeholder="Link to your PFP" />
-                <label for="Input.ProfilePictureUrl" class="form-label">Profile Picture URL</label>
-                <ValidationMessage For="() => Input.ProfilePictureUrl" class="text-danger" />
-            </div>
+            
+            <InputSelect 
+                id="defaultPfp" 
+                class="form-select flex-grow-1 py-3 mb-3"
+                @bind-Value="Input.ProfilePictureUrl"
+            >
+                @foreach (FileInfo pfp in defaultPfps) 
+                {
+                    <option value=@GetPfpPath(pfp.Name)>@pfp.Name</option>
+                }
+            </InputSelect>
+
+            @* @if (allowCustomPfps) 
+            {
+                <div class="form-floating mb-3">
+                    <InputText @bind-Value="Input.ProfilePictureUrl" id="customPfp" class="form-control" placeholder="Link to your PFP" />
+                    <label for="customPfp" class="form-label">Profile Picture URL</label>
+                    <ValidationMessage For="() => Input.ProfilePictureUrl" class="text-danger" />
+                </div>
+            } *@
+            
             <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
         </EditForm>
     </div>
@@ -46,6 +64,12 @@
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
+    private ApplicationUser? DefaultUser => userService.DefaultUser;
+
+    private List<FileInfo> defaultPfps = [];
+
+    private bool allowCustomPfps;
+
     protected override async Task OnInitializedAsync()
     {
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
@@ -53,6 +77,16 @@
 
         Input.ProfilePictureUrl ??= cachedPfpUrl;
         shownPfpUrl = Input.ProfilePictureUrl ?? "pfp/finally.jpg";
+
+        allowCustomPfps = user.BcitEmailIsVerified;
+
+        DirectoryInfo pfpDir = new DirectoryInfo("wwwroot/pfp");
+        defaultPfps = pfpDir.EnumerateFiles().ToList();
+    }
+
+    private string GetPfpPath(string fileName) 
+    {
+        return $"pfp/{fileName}";
     }
 
     private async Task OnValidSubmitAsync()
