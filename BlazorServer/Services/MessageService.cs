@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using BlazorServer.Components.Pages;
 using BlazorServer.Data;
 using Microsoft.EntityFrameworkCore;
@@ -11,16 +12,14 @@ public class MessageService
 
     private ApplicationDbContext _context;
 
-
-
-      /// <summary>
-  /// The HobbyService constructor which sets the database context.
-  /// </summary>
-  /// <param name="context">The database context</param>
-  public MessageService(ApplicationDbContext context) {
-    _context = context;
-  }
-    // method for inserting a new message into the database
+    /// <summary>
+    /// The MessageService constructor which sets the database context.
+    /// </summary>
+    /// <param name="context">The database context</param>
+    public MessageService(ApplicationDbContext context)
+    {
+        _context = context;
+    }
 
     public Message CreateNewMessage(ApplicationUser sentUser, Chat chat, string content, string sentDate = "", string sentTime = "")
     {
@@ -31,7 +30,7 @@ public class MessageService
 
         if (sentTime == null || sentTime == "")
         {
-            sentTime = TimeOnly.FromDateTime(DateTime.Now).ToString();
+            sentTime = TimeOnly.FromDateTime(DateTime.Now).ToString("HH:mm:ss");
         }
 
         Message newMsg = new Message
@@ -46,7 +45,7 @@ public class MessageService
         };
 
         return newMsg;
-        
+
     }
 
     public async Task InsertNewMessage(Message msg)
@@ -63,6 +62,15 @@ public class MessageService
             .OrderBy(m => m.SentDate)
             .ThenBy(m => m.SentTime)
             .ToListAsync();
+    }
+
+    public Message? GetLastMessage(int chatId)
+    {
+        return _context.Messages
+        .Where(m => m.ChatID == chatId)
+        .OrderByDescending(m => m.SentDate)
+        .ThenByDescending(m => m.SentTime)
+        .FirstOrDefault();
     }
 
 }

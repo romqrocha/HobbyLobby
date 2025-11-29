@@ -21,6 +21,10 @@ public interface IChatService
     /// </summary>
     /// <exception cref="InvalidOperationException"/>
     Task<Chat> NewUniqueChatFromUserIds(List<string> userIds);
+
+    ApplicationUser? GetOtherUserInChat(Chat chat, string currentUserId);
+
+    Task<List<Chat>> GetAllChatsForUser(string currentUserId);
 }
 
 public class ChatService(ApplicationDbContext db, IUserService userService) : IChatService
@@ -73,5 +77,18 @@ public class ChatService(ApplicationDbContext db, IUserService userService) : IC
         }
 
         return await NewChatFromUserIds(userIds);
+    }
+
+    public ApplicationUser? GetOtherUserInChat(Chat chat, string currentUserId)
+    {
+        return chat.UserIds?.FirstOrDefault(u => u.Id != currentUserId);
+    }
+
+    public async Task<List<Chat>> GetAllChatsForUser(string currentUserId)
+    {
+        return await db.Chats
+        .Include(c => c.UserIds)
+        .Where(c => c.UserIds.Any(u => u.Id == currentUserId))
+        .ToListAsync();
     }
 }

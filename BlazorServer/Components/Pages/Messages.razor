@@ -2,13 +2,14 @@
 @using BlazorServer.Components.Account.Pages.Manage
 @using BlazorServer.Hubs
 @using BlazorServer.Services
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.SignalR.Client
 @using Microsoft.EntityFrameworkCore
 @using BlazorServer.Data
 @using Microsoft.EntityFrameworkCore.ChangeTracking
+@attribute [Authorize]
 @inject NavigationManager navigationManager
-
 @rendermode InteractiveServer
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -16,7 +17,6 @@
 @inject IChatService chatService
 @inject IUserService userService
 @inject NavigationManager navManager
-
 @inject MessageService messageService
 @implements IAsyncDisposable
 
@@ -34,9 +34,12 @@
             {
                 @foreach (var chat in chats)
                 {
-                    var otherUser = chat.UserIds?.FirstOrDefault(u => u.Id != currentUserId);
-                    var lastMessage = DbContext.Messages.Where(m => m.ChatID == chat.ChatId).OrderByDescending(m =>
-                    m.SentDate).ThenByDescending(m => m.SentTime).FirstOrDefault();
+                    @* var otherUser = chat.UserIds?.FirstOrDefault(u => u.Id != currentUserId); *@
+                    @* var lastMessage = DbContext.Messages.Where(m => m.ChatID == chat.ChatId).OrderByDescending(m =>
+                    m.SentDate).ThenByDescending(m => m.SentTime).FirstOrDefault(); *@
+
+                    var otherUser = chatService.GetOtherUserInChat(chat, currentUserId ?? "");
+                    var lastMessage = messageService.GetLastMessage(chat.ChatId);
 
                     <div class="chat-item @(selectedChatId == chat.ChatId ? "active" : "")"
                         @onclick="() => SelectChat(chat.ChatId)">
@@ -62,7 +65,8 @@
     <div class="chat-window">
         @if (selectedChat != null)
         {
-            var otherUser = selectedChat.UserIds?.FirstOrDefault(u => u.Id != currentUserId);
+            @* var otherUser = selectedChat.UserIds?.FirstOrDefault(u => u.Id != currentUserId); *@
+            var otherUser = chatService.GetOtherUserInChat(selectedChat, currentUserId ?? "");
 
             <div class="chat-header">
                 <img src="@(otherUser?.ProfilePictureURL ?? defaultUser.ProfilePictureURL)" alt="User"
@@ -172,10 +176,11 @@
 
     private async Task LoadChats()
     {
-        chats = await DbContext.Chats
+        @* chats = await DbContext.Chats
         .Include(c => c.UserIds)
         .Where(c => c.UserIds.Any(u => u.Id == currentUserId))
-        .ToListAsync();
+        .ToListAsync(); *@
+        chats = await chatService.GetAllChatsForUser(currentUserId ?? "");
 
         if (Username is not null)
         {
@@ -244,16 +249,7 @@
 
         if (selectedChat != null)
         {
-            @* messages = await DbContext.Messages
-            .Include(m => m.SentUser)
-            .Where(m => m.ChatID == chatId)
-            .OrderBy(m => m.SentDate)
-            .ThenBy(m => m.SentTime)
-            .ToListAsync(); *@
-
             messages = await messageService.GetChatMessages(chatId);
-
-
         }
 
         // SignalR stuff
@@ -295,9 +291,6 @@
     // Send message with SignalR
     private async Task SendMessage(string groupName, string message)
     {
-        Console.WriteLine("In SendAsync!!!");
-        Console.WriteLine(groupName);
-
         if (groupName != null && groupName != "")
         {
             await _hubConnection.SendAsync("SendMessageToGroup", groupName, message, currentUserId);
@@ -314,9 +307,6 @@
     // Send message with SignalR
     public async Task ReceiveMessage(string groupName, string message, string sentUserID)
     {
-        Console.WriteLine("HEY In ReceiveAsync!!!");
-        Console.WriteLine(groupName);
-
         if (groupName != null && groupName != "" && groupName == chatGroupName)
         {
 
@@ -333,6 +323,10 @@
 
     } 
 
+    /// <summary>
+    /// Dispose of any SignalR hub connections when the Messages page is disposed.
+    /// </summary>
+    /// <returns>ValueTask</returns>
     public async ValueTask DisposeAsync(){
         if (_hubConnection is not null){
             await _hubConnection.DisposeAsync();
