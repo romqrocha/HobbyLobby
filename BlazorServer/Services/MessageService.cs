@@ -57,11 +57,11 @@ public class MessageService
     public async Task<List<Message>> GetChatMessages(int chatId)
     {
         return await _context.Messages
-            .Include(m => m.SentUser)
-            .Where(m => m.ChatID == chatId)
-            .OrderBy(m => m.SentDate)
-            .ThenBy(m => m.SentTime)
-            .ToListAsync();
+        .Include(m => m.SentUser)
+        .Where(m => m.ChatID == chatId)
+        .OrderByDescending(m => m.SentDate)
+            .ThenByDescending(m => m.SentTime)
+    .ToListAsync();
     }
 
     public Message? GetLastMessage(int chatId)

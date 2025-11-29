@@ -34,9 +34,6 @@
             {
                 @foreach (var chat in chats)
                 {
-                    @* var otherUser = chat.UserIds?.FirstOrDefault(u => u.Id != currentUserId); *@
-                    @* var lastMessage = DbContext.Messages.Where(m => m.ChatID == chat.ChatId).OrderByDescending(m =>
-                    m.SentDate).ThenByDescending(m => m.SentTime).FirstOrDefault(); *@
 
                     var otherUser = chatService.GetOtherUserInChat(chat, currentUserId ?? "");
                     var lastMessage = messageService.GetLastMessage(chat.ChatId);
@@ -65,7 +62,6 @@
     <div class="chat-window">
         @if (selectedChat != null)
         {
-            @* var otherUser = selectedChat.UserIds?.FirstOrDefault(u => u.Id != currentUserId); *@
             var otherUser = chatService.GetOtherUserInChat(selectedChat, currentUserId ?? "");
 
             <div class="chat-header">
@@ -95,9 +91,9 @@
                     }
                 }
             </div>
-            <div class="d-flex flex-row">
-                <textarea class="form-control" placeholder="enter your comment" @bind="@newMessage"></textarea>
-                <button type="button" class="btn btn-primary px-2"
+            <div class="d-flex flex-row text-box-bg">
+                <textarea class="form-control message-input-text mx-1" placeholder="Type a message..." @bind="@newMessage"></textarea>
+                <button type="button" class="btn btn-primary px-2 py-1 my-3 mx-2"
                     @onclick="@(() => SendMessage(chatGroupName ?? "", newMessage))">Send</button>
             </div>
         }
@@ -176,10 +172,6 @@
 
     private async Task LoadChats()
     {
-        @* chats = await DbContext.Chats
-        .Include(c => c.UserIds)
-        .Where(c => c.UserIds.Any(u => u.Id == currentUserId))
-        .ToListAsync(); *@
         chats = await chatService.GetAllChatsForUser(currentUserId ?? "");
 
         if (Username is not null)
@@ -314,9 +306,12 @@
 
             Message messageObj = messageService.CreateNewMessage(sentUser, selectedChat!, message);
 
-            // display message in UI
-            messages!.Add(messageObj);
+            messages!.Insert(0, messageObj);
+
+            newMessage = "";
+
             await InvokeAsync(StateHasChanged);
+
 
         }
 
