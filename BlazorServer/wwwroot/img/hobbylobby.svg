@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="77.492683mm"
+   height="79.029556mm"
+   viewBox="0 0 77.492683 79.029556"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <rect
+       x="290.43201"
+       y="316.57089"
+       width="258.48447"
+       height="174.2592"
+       id="rect4" />
+  </defs>
+  <g
+     id="layer1"
+     transform="translate(-60.573843,-59.421191)">
+    <ellipse
+       style="fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:0.264999;stroke-opacity:1"
+       id="path1"
+       cx="99.320183"
+       cy="98.935966"
+       rx="38.613842"
+       ry="39.382278" />
+    <text
+       xml:space="preserve"
+       transform="matrix(0.34010487,0,0,0.34185478,-42.456274,-35.12541)"
+       id="text4"
+       style="font-size:16px;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect4);fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.00157;stroke-opacity:1"><tspan
+         x="333.64258"
+         y="373.19304"
+         id="tspan3"><tspan
+           style="font-size:64px;font-family:'MV Boli';-inkscape-font-specification:'MV Boli, Normal'"
+           id="tspan1">H</tspan><tspan
+           style="font-size:48px;font-family:'MV Boli';-inkscape-font-specification:'MV Boli, Normal'"
+           id="tspan2">obby 
+</tspan></tspan><tspan
+         x="349.39258"
+         y="453.19304"
+         id="tspan9"><tspan
+           style="font-size:64px;font-family:'MV Boli';-inkscape-font-specification:'MV Boli, Normal'"
+           id="tspan7">L</tspan><tspan
+           style="font-size:48px;font-family:'MV Boli';-inkscape-font-specification:'MV Boli, Normal'"
+           id="tspan8">obby</tspan></tspan></text>
+  </g>
+</svg>

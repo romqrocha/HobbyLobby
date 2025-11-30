@@ -1,6 +1,7 @@
 using BlazorServer.Components;
 using BlazorServer.Components.Account;
 using BlazorServer.Data;
+using BlazorServer.Hubs;
 using BlazorServer.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -49,8 +50,17 @@ builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
 // Other services
 builder.Services.AddScoped<HobbyService>();
 builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddTransient<IChatService, ChatService>();
+builder.Services.AddScoped<MessageService>();
+
+// SignalR
+builder.Services.AddSignalR();
 
 var app = builder.Build();
+
+// SignalR
+app.MapHub<ChatHub>(ChatHub.HubUrl);
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
