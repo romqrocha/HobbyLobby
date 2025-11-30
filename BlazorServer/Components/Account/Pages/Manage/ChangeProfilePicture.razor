@@ -1,6 +1,7 @@
 ﻿@page "/Account/Manage/ProfilePicture"
 
 @using System.ComponentModel.DataAnnotations
+@using BlazorServer.Services
 @using Microsoft.AspNetCore.Identity
 @using BlazorServer.Data
 @using Microsoft.AspNetCore.Identity.EntityFrameworkCore
@@ -11,6 +12,7 @@
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
 @inject ApplicationDbContext Db
+@inject IUserService userService
 
 <PageTitle>Profile</PageTitle>
 
@@ -22,14 +24,39 @@
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
             <div class="mb-3">
-                <img src="@shownPfpUrl" class="rounded img-fluid" alt="Your profile picture"/>
+                <img src="@shownPfpUrl" class="rounded img-fluid" alt=@Input.ProfilePictureUrl/>
             </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.ProfilePictureUrl" id="Input.ProfilePictureUrl" class="form-control" placeholder="Link to your PFP" />
-                <label for="Input.ProfilePictureUrl" class="form-label">Profile Picture URL</label>
-                <ValidationMessage For="() => Input.ProfilePictureUrl" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
+            
+            <InputSelect 
+                id="defaultPfp" 
+                class="form-select flex-grow-1 py-3 mb-3"
+                @bind-Value="Input.ProfilePictureUrl"
+            >
+                @if (allowCustomPfps) 
+                {
+                    <option>
+                        Custom
+                    </option>
+                }
+
+                @foreach (FileInfo pfp in defaultPfps) 
+                {
+                    <option value=@GetPfpPath(pfp.Name)>
+                        @pfp.Name
+                    </option>
+                }
+            </InputSelect>
+
+            @if (allowCustomPfps) 
+            {
+                <div class="form-floating mb-3">
+                    <InputText @bind-Value="Input.CustomUrl" id="customPfp" class="form-control" placeholder="images.com/img" />
+                    <label for="customPfp" class="form-label">Provide your own URL</label>
+                    <ValidationMessage For="() => Input.CustomUrl" class="text-danger" />
+                </div>
+            }
+            
+            <button type="submit" class="w-100 btn btn-lg btn-primary mb-3">Save</button>
         </EditForm>
     </div>
 </div>
@@ -46,13 +73,44 @@
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
+    private ApplicationUser? DefaultUser => userService.DefaultUser;
+
+    private List<FileInfo> defaultPfps = [];
+
+    private bool allowCustomPfps;
+
     protected override async Task OnInitializedAsync()
     {
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
         cachedPfpUrl = user.ProfilePictureURL;
 
-        Input.ProfilePictureUrl ??= cachedPfpUrl;
+        DirectoryInfo pfpDir = new DirectoryInfo("wwwroot/pfp");
+        defaultPfps = pfpDir.EnumerateFiles().ToList();
+
+        allowCustomPfps = user.BcitEmailIsVerified;   
+
+        Input.ProfilePictureUrl ??= cachedPfpUrl ?? DefaultUser?.ProfilePictureURL;
+        Input.CustomUrl = UserHasDefaultPfp() ? null : Input.CustomUrl;
+
+        Input.ProfilePictureUrl = Input.CustomUrl is null ? Input.ProfilePictureUrl : Input.CustomUrl;
+
         shownPfpUrl = Input.ProfilePictureUrl ?? "pfp/finally.jpg";
+    }
+
+    public static string GetPfpPath(string fileName) 
+    {
+        return $"pfp/{fileName}";
+    }
+
+    private bool UserHasDefaultPfp() 
+    {
+        IEnumerable<string>? defaultPaths = defaultPfps.Select(
+            file => GetPfpPath(file.Name)
+        );
+        
+        bool usesDefaultPfp = defaultPaths.Contains(Input.ProfilePictureUrl);
+        
+        return usesDefaultPfp;
     }
 
     private async Task OnValidSubmitAsync()
@@ -95,5 +153,9 @@
         [DataType(DataType.ImageUrl)]
         [Display(Name = "Profile Picture URL")]
         public string? ProfilePictureUrl { get; set; }
+
+        [DataType(DataType.ImageUrl)]
+        [Display(Name = "Custom Profile Picture URL")]
+        public string? CustomUrl { get; set; }
     }
 }

@@ -1,12 +1,86 @@
 .divider {
     border: none;
     border-top: 1px solid #bbb;
-    margin: 0.5rem 0;
+    margin: 1.25rem 0 1.75rem 0;
 }
 
-.hobby-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    row-gap: 4rem;
-    column-gap: 1rem;
+.mw-75 {
+    width:fit-content;
+    max-width: 92%;
 }
+
+.my-pill 
+{
+    padding:0.9em 1.4em;
+}
+
+.responsive-text, .responsive-text-lg, .responsive-text-sm, .responsive-text-xs {
+    --my-base-font-size:16px; 
+}
+
+@media (min-width: 1200px) {
+    .responsive-text-xs {
+        font-size: calc(var(--my-base-font-size) * 1.1);
+    }
+    .responsive-text-sm {
+        font-size: calc(var(--my-base-font-size) * 1.25);
+    }
+    .responsive-text {
+        font-size: calc(var(--my-base-font-size) * 1.5);
+    }
+    .responsive-text-lg {
+        font-size: calc(var(--my-base-font-size) * 2.5);
+    }
+}
+
+@media (min-width: 577px) and (max-width: 1199px) {
+    .responsive-text-xs {
+        font-size: calc(var(--my-base-font-size) * 0.85);
+    }
+    .responsive-text-sm {
+        font-size: calc(var(--my-base-font-size));
+    }
+    .responsive-text {
+        font-size: calc(var(--my-base-font-size) * 1.25);
+    }
+    .responsive-text-lg {
+        font-size: calc(var(--my-base-font-size) * 2);
+    }
+}
+
+@media (max-width: 576px) {
+    .responsive-text-xs {
+        font-size: calc(var(--my-base-font-size) * 0.6);
+    }
+    .responsive-text-sm {
+        font-size: calc(var(--my-base-font-size) * 0.75);
+    }
+    .responsive-text {
+        font-size: calc(var(--my-base-font-size));
+    }
+    .responsive-text-lg {
+        font-size: calc(var(--my-base-font-size * 1.5));
+    }
+}
+
+.horizontal-scroll {
+    display: flex;
+    white-space: nowrap;
+    overflow: hidden;
+    animation: infiniteScroll 20s linear infinite;
+}
+
+/* imagine how cool we would be if we had infinite scroll instead of text truncation
+.horizontal-scroll-item {
+    padding: 0 20px;
+}
+
+@keyframes infiniteScroll {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(-100%);
+    }
+}
+*/

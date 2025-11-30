@@ -16,58 +16,112 @@
 @inject HobbyService hobbyService
 
 @code {
-    string pill = "rounded-pill text-white px-3 py-2 fs-5";
-    string pillContainer = "d-flex align-items-center justify-content-start p-2 gap-2";
+    string pill = "rounded-pill text-black my-pill mw-75 text-truncate responsive-text-xs";
+    string myCol10 = "col-10 d-flex flex-column gap-2 justify-content-between ps-1 ps-sm-2";
+    string myCol2 = "col-2 d-flex flex-column h-100 justify-content-between text-end px-0";
+    string myHobbyEmojiCol = "col-2 d-flex flex-column h-100 justify-content-center text-end px-0";
+    string myResponsiveCol = "row gx-1 col-6 col-md-4";
+    string myHobbyCol = "row gx-1 col-6 col-md-4 mb-3 mb-lg-4";
+    string actionButton = "btn btn-dark d-flex flex-row px-3 responsive-text-sm text-nowrap";
 }
 
 <PageTitle>HobbyEditor</PageTitle>
-<div class="d-flex flex-column gap-3 p-3 fs-5">
-    <div class="position-relative">
+
+<div class="d-flex flex-column gap-3 p-3 fs-5 ">
+
+    <div class="position-relative" style="margin-bottom:60px">
         <img 
             src="@BannerUrl" 
             alt="Banner" 
             class="img-fluid w-100" 
-            style="height:240px; object-fit:cover;" />
+            style="height:240px;object-fit:cover;"
+        />
 
         <img 
             src="@PfpUrl" 
-            alt="Profile" 
+            alt="Profile Picture" 
             class="position-absolute rounded" 
-            style="width:160px;height:160px;object-fit:cover;left:5%;bottom:-40px;" />
+            style="width:160px;height:160px;object-fit:cover;left:5%;bottom:-40px;"
+        />
     </div>
 
-    <div class="row g-3" style="margin-top:2.5rem;">
-        <div class="col-12 col-md-6">
-            <div class="d-flex flex-column gap-2">
-                <p class="mb-0 fs-3">@DisplayName</p>
-                <div class="text-muted mb-2" style="margin-top:-0.5rem">&#64;@Username</div>
-                @if (CanEdit)
-                {
-                    <a class="btn btn-primary btn-sm" href="/Account/Manage" style="width:fit-content;">
-                        Edit
-                    </a>
-                }
-                else if (CanMessage)
-                {
-                    <a class="btn btn-primary btn-sm" href="/messages/@(Username)" style="width:fit-content;">
-                        Message
-                    </a>
-                }
-                else
-                {
-                    <a class="btn btn-secondary btn-sm" href="/Account/Manage/OrganizationalEmail" 
-                        style="width:fit-content;" disabled
-                    >
-                        Message
-                    </a>
-                }
+    <div class="row">
+        <div class="@myResponsiveCol">
+            <div class=@myCol2></div>
+            <div class=@myCol10>
+                <div><h2 class="mb-0 responsive-text-lg">
+                    @DisplayName
+                </h2></div>
+
+                <div class="text-secondary responsive-text">
+                    &#64;@Username
+                </div>
+
+                <div>
+                    @if (CanEdit)
+                    {
+                        <a href="/Account/Manage" 
+                            class="@(actionButton) fw-bold mt-1"
+                            style="width:fit-content;"
+                        >
+                            <i class="bi bi-pencil">&nbsp;</i>
+                            Edit
+                        </a>
+                    }
+                    else if (CanMessage)
+                    {
+                        <a href="/messages/@(Username)"
+                            class="@(actionButton) fw-bold"
+                            style="width:fit-content;"    
+                        >
+                            <i class="bi bi-envelope">&nbsp;</i>
+                            Message
+                        </a>
+                    }
+                    else if (ShowVerifyEmailButton)
+                    {
+                        <a href="/Account/Manage/OrganizationalEmail"
+                            class="btn btn-secondary d-flex flex-row px-3 responsive-text-sm text-nowrap"
+                            style="width:fit-content;" 
+                        >
+                            <i class="bi bi-lock">&nbsp;</i>
+                            Message
+                        </a>
+                    }
+                    else {
+                        <a
+                            class="btn btn-outline-secondary d-flex flex-row px-3 responsive-text-sm text-nowrap"
+                            style="width:fit-content;" 
+                        >
+                            <i class="bi bi-lock">&nbsp;</i>
+                            Message
+                        </a>
+                    }
+                </div>
             </div>
         </div>
-        <div class="col-12 col-md-6">
-            <div class="d-flex flex-column gap-2">
-                <div>🌎 @Country</div>
-                <div>🙂 @MatchPercentage% Match</div>
-                <div>🕘 Since @DateRegistered</div>
+        <div class="@myResponsiveCol">
+            <div class=@myCol2>
+                <span class="responsive-text">
+                    🌎
+                </span>
+                <span class="responsive-text">
+                    🙂
+                </span>
+                <span class="responsive-text">
+                    🕘
+                </span>
+            </div>
+            <div class=@myCol10>
+                <div class="responsive-text">
+                    @Country
+                </div>
+                <div class="responsive-text">
+                    @MatchPercentage% Match
+                </div>
+                <div class="responsive-text">
+                    Since @DateRegistered
+                </div>
             </div>
         </div>
     </div>
@@ -76,102 +130,132 @@
 
     @if (Hobbies is not null && Hobbies.Count > 0)
     {
-        @if (FavoriteHobbies is not null && FavoriteHobbies.Count > 0) 
-        {
-            <div class="hobby-grid" style="margin-bottom:2rem;">
-                @if (FavHobby1 is not null)
-                {
-                    <div class=@pillContainer>
-                        <span class="fs-3">🥇</span>
+        <div class="row">
+            @if (FavHobby1 is not null)
+            {
+                <div class=@myHobbyCol>
+                    <div class=@myHobbyEmojiCol>
+                        <span class="responsive-text">🥇</span>
+                    </div>
+                    <div class=@myCol10>
                         <span 
                             class=@pill 
-                            style="background-color:#dab53e; box-shadow:0 0 0 4px #c4a23380;"
+                            style="background-color:#f5c31f; box-shadow:0 0 0 4px #f5c31f80;"
                         >
                             @FavHobby1.HobbyName
+                            
                         </span>
                     </div>
-                }
-                @if (FavHobby2 is not null)
-                {
-                    <div class=@pillContainer>
-                        <span class="fs-3">🥈</span>
+                </div>
+            }
+            @if (FavHobby2 is not null)
+            {
+                <div class=@myHobbyCol>
+                    <div class=@myHobbyEmojiCol>
+                        <span class="responsive-text">🥈</span>
+                    </div>
+                    <div class=@myCol10>
                         <span 
-                            class=@pill
-                            style="background-color:#b5b5b5; box-shadow:0 0 0 4px #afafaf80;"
-                        >
-                            @FavHobby2.HobbyName
-                        </span>
+                        class=@pill
+                        style="background-color:#dddddd; box-shadow:0 0 0 4px #d8d8d880;"
+                    >
+                        @FavHobby2.HobbyName
+                    </span>
                     </div>
-                }
-                @if (FavHobby3 is not null)
-                {
-                    <div class=@pillContainer>
-                        <span class="fs-3">🥉</span>
+                </div>
+            }
+            @if (FavHobby3 is not null)
+            {
+                <div class=@myHobbyCol>
+                    <div class=@myHobbyEmojiCol>
+                        <span class="responsive-text">🥉</span>
+                    </div>
+                    <div class=@myCol10>
                         <span 
                             class=@pill 
-                            style="background-color:#CD7F32; box-shadow:0 0 0 4px #CD7F3280;"
+                            style="background-color:#edc8ab; box-shadow:0 0 0 4px #edc8aba0;"
                         >
                             @FavHobby3.HobbyName
                         </span>
                     </div>
-                }
-            </div>
-        }
-        
-        <div class="hobby-grid">
-            @foreach (Hobby hobby in Hobbies.Except(FavoriteHobbies ?? []))
-            {
-                <div class=@pillContainer>
-                    @if (SameHobbies?.Contains(hobby) == true) 
-                    {
-                        <span class="fs-3">🙂</span>
-                        <span class="@pill bg-success">
-                            @hobby.HobbyName
-                        </span>
-                    } 
-                    else if (RecommendedHobbies?.Contains(hobby) == true) 
-                    {
-                        <span class="fs-3">💡</span>
-                        <span class="@pill bg-success">
-                            @hobby.HobbyName
-                        </span>
-                    }
-                    else  @* if (DifferentHobbies?.Contains(hobby) == true) *@
-                    {
-                        <span class="@pill bg-secondary">
-                            @hobby.HobbyName
-                        </span>
-                    }
                 </div>
             }
-            @if (CanEdit) 
+            
+            @foreach (Hobby hobby in Hobbies.Except(FavoriteHobbies ?? []))
             {
-                
-                <div class=@pillContainer>
-                    <span class="fs-3">➡️</span>
-                    <a class="btn btn-primary text-nowrap fs-5" href="hobby">
-                        📝 Add More
-                    </a>
+                <div class=@myHobbyCol>
+                    <div class=@myHobbyEmojiCol>
+                        <span class="responsive-text">
+                            @if (!CanEdit && SameHobbies?.Contains(hobby) == true) 
+                            {
+                                <span class="responsive-text">🙂</span>
+                            } 
+                            else if (RecommendedHobbies?.Contains(hobby) == true)
+                            {
+                                <span class="responsive-text">💡</span>
+                            }
+                        </span>
+                    </div>
+                    <div class=@myCol10>
+                        @if (DifferentHobbies?.Contains(hobby) != true)
+                        {
+                            <span class="@pill" 
+                                style="background-color:#d8e6bc;box-shadow:0 0 0 2px #d8e6bca0;"
+                            >
+                                @hobby.HobbyName
+                            </span>
+                        }
+                        else // if in SameHobbies or in RecommendedHobbies
+                        {
+                            <span class="@pill" style="background-color:#ebe9dc">
+                                @hobby.HobbyName
+                            </span>
+                        }
+                    </div>
                 </div>
             }
         </div>
-
-        <hr class="divider" />
+        <div class="row justify-content-center" style="margin-top: -1rem">
+            @if (CanEdit) 
+            {
+                <div class=@myHobbyCol>
+                    <div class=@myHobbyEmojiCol></div>
+                    <div class=@myCol10>
+                        <a class="@actionButton" 
+                            style="width:fit-content;"
+                            href="hobby"
+                        >
+                            <i class="bi bi-plus-lg">&nbsp;</i>                        
+                            Add More
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
     }
     else if (IsSelf)
     {
         <div class="d-flex flex-column">
-            <div class="text-muted">
+            <div class="text-muted text-center">
                 This is looking pretty empty....
             </div>
-            <div class="text-muted">
+            <div class="text-muted text-center">
                 Why not <a href="hobby">add some hobbies</a>?
             </div>
         </div>
-        
-        <hr class="divider" />
     }
+
+    <hr class="divider" />
     
+    @if (ShowVerifyEmailButton)
+    {
+        <a href="/Account/Manage/OrganizationalEmail"
+            class="@(actionButton) align-self-end p-2"
+            style="width:fit-content;" 
+        >
+            Verify BCIT Email
+        </a>
+    }
 
     
 </div>
@@ -217,6 +301,8 @@
 
     public bool IsSelf { get; set; }
 
+    public bool ShowVerifyEmailButton { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         await PopulateUserData();
@@ -242,6 +328,8 @@
 
             CanEdit = true;
             CanMessage = false;
+
+            ShowVerifyEmailButton = !otherUser.BcitEmailIsVerified;
         } 
         else if (usernameQuery == currentUser?.UserName && currentUser is not null) {
             // own profile, but preview mode (not editable)
