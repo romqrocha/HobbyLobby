@@ -1,6 +1,30 @@
 ﻿@page "/"
+@using BlazorServer.Components.Account.Shared
+@inject NavigationManager NavigationManager
+
 
 <PageTitle>Home</PageTitle>
 
-<h1 class="text-center">Hobby Lobby</h1>
 
+<div class="container">
+    <AuthorizeView>
+        <Authorized>
+            <div class="container-fluid d-flex justify-content-center align-items-center">
+                <h1>Welcome back to Hobby Lobby, @context.User.Identity?.Name</h1>
+            </div>
+            @if (true){
+                RedirectToProfile();
+            }
+        </Authorized>
+        <NotAuthorized>
+            <RedirectToLogin></RedirectToLogin>
+        </NotAuthorized>
+    </AuthorizeView>
+
+</div>
+
+@code{
+    public void RedirectToProfile(){
+        NavigationManager.NavigateTo(uri: "profile", forceLoad: true);
+    }
+}

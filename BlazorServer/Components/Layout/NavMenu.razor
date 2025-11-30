@@ -14,7 +14,7 @@
     <a href="search/"><img class="px-3 nav-img" src="img/hobbylobby.svg"/></a>
 
     <div class="input-group">
-        <span class="input-group-text nav-search-bar ms-4" id="basic-addon1"><span class="bi bi-search"></span></span>
+        <span class="input-group-text nav-search-bar ms-4 d-flex align-items-center" id="basic-addon1"><span class="bi bi-search"></span></span>
         <input type="text" class="form-control nav-search-bar me-2" placeholder="Search for hobbies..." aria-label="Search"
             aria-describedby="basic-addon1" @onkeydown="HandleKeyDown" @bind-value="SearchText"
             @bind-value:event="oninput">
