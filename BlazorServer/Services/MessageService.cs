@@ -23,14 +23,17 @@ public class MessageService
 
     public Message CreateNewMessage(ApplicationUser sentUser, Chat chat, string content, string sentDate = "", string sentTime = "")
     {
+
+        DateTime nowPacific = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"));
+
         if (sentDate == null || sentDate == "")
         {
-            sentDate = DateOnly.FromDateTime(DateTime.Now).ToString();
+            sentDate = DateOnly.FromDateTime(nowPacific).ToString();
         }
 
         if (sentTime == null || sentTime == "")
         {
-            sentTime = TimeOnly.FromDateTime(DateTime.Now).ToString("HH:mm:ss");
+            sentTime = TimeOnly.FromDateTime(nowPacific).ToString("HH:mm:ss");
         }
 
         Message newMsg = new Message
