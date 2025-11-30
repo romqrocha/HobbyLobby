@@ -85,7 +85,7 @@
                             }
                             <div class="message-content">
                                 <div class="message-text">@message.MessageContent</div>
-                                <div class="message-timestamp">@FormatTime(message.SentTime)</div>
+                                <div class="message-timestamp">@FormatTime(message.SentTime, message.SentDate)</div>
                             </div>
                         </div>
                     }
@@ -269,8 +269,12 @@
         return "";
     }
 
-    private string FormatTime(string time)
+    private string FormatTime(string time, string date)
     {
+        if (date != null && date != "" && DateOnly.Parse(date) != DateOnly.FromDateTime(DateTime.Now)){
+            return DateOnly.Parse(date).ToString("MMM dd, yyyy");
+        }
+
         if (TimeSpan.TryParse(time, out TimeSpan timeSpan))
         {
             var dateTime = DateTime.Today.Add(timeSpan);
