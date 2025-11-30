@@ -24,13 +24,13 @@
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
             <div class="mb-3">
-                <img src="@shownBannerUrl" class="rounded img-fluid" alt=@Input.ProfilePictureUrl/>
+                <img src="@shownBannerUrl" class="rounded img-fluid" alt=@Input.BannerUrl/>
             </div>
 
             <InputSelect 
                 id="defaultPfp" 
                 class="form-select flex-grow-1 py-3 mb-3"
-                @bind-Value="Input.ProfilePictureUrl"
+                @bind-Value="Input.BannerUrl"
             >
                 @if (!allowCustomBanners) 
                 {
@@ -39,10 +39,10 @@
                     </option>
                 }
 
-                @foreach (FileInfo pfp in defaultPfps) 
+                @foreach (FileInfo banner in defaultBanners) 
                 {
-                    <option value=@GetBannerPath(pfp.Name)>
-                        @pfp.Name
+                    <option value=@GetBannerPath(banner.Name)>
+                        @banner.Name
                     </option>
                 }
             </InputSelect>
@@ -50,8 +50,8 @@
             @if (!allowCustomBanners) 
             {
                 <div class="form-floating mb-3">
-                    <InputText @bind-Value="Input.CustomUrl" id="customPfp" class="form-control" placeholder="images.com/img" />
-                    <label for="customPfp" class="form-label">Provide your own URL</label>
+                    <InputText @bind-Value="Input.CustomUrl" id="customBanner" class="form-control" placeholder="images.com/img" />
+                    <label for="customBanner" class="form-label">Provide your own URL</label>
                     <ValidationMessage For="() => Input.CustomUrl" class="text-danger" />
                 </div>
             }
@@ -75,7 +75,7 @@
 
     private ApplicationUser? DefaultUser => userService.DefaultUser;
 
-    private List<FileInfo> defaultPfps = [];
+    private List<FileInfo> defaultBanners = [];
 
     private bool allowCustomBanners;
 
@@ -85,16 +85,16 @@
         cachedBannerUrl = user.BannerURL;
 
         DirectoryInfo bannerDir = new DirectoryInfo("wwwroot/banner");
-        defaultPfps = bannerDir.EnumerateFiles().ToList();
+        defaultBanners = bannerDir.EnumerateFiles().ToList();
 
         allowCustomBanners = user.BcitEmailIsVerified;   
 
-        Input.ProfilePictureUrl ??= cachedBannerUrl ?? DefaultUser?.BannerURL;
+        Input.BannerUrl ??= cachedBannerUrl ?? DefaultUser?.BannerURL;
         Input.CustomUrl = UserHasDefaultBanner() ? null : Input.CustomUrl;
 
-        Input.ProfilePictureUrl = Input.CustomUrl is null ? Input.ProfilePictureUrl : Input.CustomUrl;
+        Input.BannerUrl = Input.CustomUrl is null ? Input.BannerUrl : Input.CustomUrl;
 
-        shownBannerUrl = Input.ProfilePictureUrl ?? "banner/bg3.png";
+        shownBannerUrl = Input.BannerUrl ?? "banner/bg3.png";
     }
 
     public static string GetBannerPath(string fileName) 
@@ -104,11 +104,11 @@
 
     private bool UserHasDefaultBanner() 
     {
-        IEnumerable<string>? defaultPaths = defaultPfps.Select(
+        IEnumerable<string>? defaultPaths = defaultBanners.Select(
             file => GetBannerPath(file.Name)
         );
         
-        bool usesDefaultBanner = defaultPaths.Contains(Input.ProfilePictureUrl);
+        bool usesDefaultBanner = defaultPaths.Contains(Input.BannerUrl);
         
         return usesDefaultBanner;
     }
@@ -117,10 +117,10 @@
     {
         List<Action<ApplicationUser>> updateQueue = new();
 
-        if (Input.ProfilePictureUrl != cachedBannerUrl) 
+        if (Input.BannerUrl != cachedBannerUrl) 
         {
-            updateQueue.Add(dbUser => dbUser.BannerURL = Input.ProfilePictureUrl);
-            shownBannerUrl = Input.ProfilePictureUrl;
+            updateQueue.Add(dbUser => dbUser.BannerURL = Input.BannerUrl);
+            shownBannerUrl = Input.BannerUrl;
         }
 
         await UpdateDbUser(updateQueue);
@@ -151,11 +151,11 @@
     private sealed class InputModel
     {
         [DataType(DataType.ImageUrl)]
-        [Display(Name = "Profile Picture URL")]
-        public string? ProfilePictureUrl { get; set; }
+        [Display(Name = "Default Banner URL")]
+        public string? BannerUrl { get; set; }
 
         [DataType(DataType.ImageUrl)]
-        [Display(Name = "Custom Profile Picture URL")]
+        [Display(Name = "Custom Banner URL")]
         public string? CustomUrl { get; set; }
     }
 }
