@@ -7,19 +7,19 @@
 @inject IUserService userService
 
 
-<div class="card" style="width: 18rem;">
+<div class="card mb-3 me-3" style="width: 22rem;">
   <div class="card-body">
     <h5 class="card-title text-center"><b> @ProfileUser.DisplayName </b></h5>
-    <div class="row">
-      <div class="col-md-6"> <img class="card-img-top" src=@(ProfileUser.ProfilePictureURL ?? userService.DefaultUser.ProfilePictureURL) alt="User profile picture">
+    <div class="row g-0">
+      <div class="col-md-6"> <img class="card-img-top position-absolute rounded" style="width:130px;height:130px;object-fit:cover;" src=@(ProfileUser.ProfilePictureURL ?? userService.DefaultUser.ProfilePictureURL) alt="User profile picture">
       </div>
       <div class="col-md-6 d-grid gap-2">
-        <button class="btn rounded-pill hobby">@(ProfileUser.FavoriteHobby1?.HobbyName ?? "No first hobby")</button>
-        <button class="btn rounded-pill hobby">@(ProfileUser.FavoriteHobby2?.HobbyName ?? "No second hobby")</button>
-        <button class="btn rounded-pill hobby">@(ProfileUser.FavoriteHobby3?.HobbyName ?? "No third hobby")</button>
+        <button class="btn rounded-pill hobby text-truncate">@(ProfileUser.FavoriteHobby1?.HobbyName ?? "No 1st hobby")</button>
+        <button class="btn rounded-pill hobby text-truncate">@(ProfileUser.FavoriteHobby2?.HobbyName ?? "No 2nd hobby")</button>
+        <button class="btn rounded-pill hobby text-truncate">@(ProfileUser.FavoriteHobby3?.HobbyName ?? "No 3rd hobby")</button>
       </div>
     </div>
-    <p class="card-text text-center mt-3">🙂 @matchPercent% match (WIP)</p>
+    <p class="card-text text-center mt-3">🙂 @matchPercent% match</p>
 
     <div class="text-center">
       <button class="btn btn-primary" @onclick="GoToProfile">See Profile</button>

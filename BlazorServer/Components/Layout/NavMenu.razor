@@ -22,10 +22,27 @@
 
     <AuthorizeView>
         <Authorized>
+            @if (showBcitEmailAlert)
+            {
+                <div class="alert alert-warning alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-5" role="alert" style="z-index: 9999; width: auto;">
+                    You must verify with a BCIT email before you can message.
+                    <button type="button" class="btn-close" @onclick="() => showBcitEmailAlert = false" aria-label="Close"></button>
+                </div>
+            }
+            
             <div class="nav-item px-3">
-                <NavLink class="@(BcitEmailIsVerified ? "nav-link" : "nav-link disabled")" href="@(BcitEmailIsVerified ? "messages" : "#")" Match="NavLinkMatch.All">
-                    <span class="bi bi-chat-message-fill-nav-menu" aria-hidden="true"></span>
-                </NavLink>
+                @if (BcitEmailIsVerified)
+                {
+                    <NavLink class="nav-link" href="messages" Match="NavLinkMatch.All">
+                        <span class="bi bi-chat-message-fill-nav-menu" aria-hidden="true"></span>
+                    </NavLink>
+                }
+                else
+                {
+                    <a class="nav-link" @onclick="HandleMessagesClick" style="cursor: pointer;">
+                        <span class="bi bi-chat-message-fill-nav-menu" aria-hidden="true"></span>
+                    </a>
+                }
             </div>
 
             <div class="nav-item px-3">
@@ -64,6 +81,7 @@
 @code {
     private string? currentUrl;
     private bool BcitEmailIsVerified = false;
+    private bool showBcitEmailAlert = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -100,5 +118,12 @@
             Console.WriteLine("Search called! For text: " + SearchText);
             NavigationManager.NavigateTo($"search/{SearchText}");
         }
+    }
+
+    private void HandleMessagesClick()
+    {
+        showBcitEmailAlert = true;
+        StateHasChanged();
+        NavigationManager.NavigateTo("Account/Manage/OrganizationalEmail");
     }
 }
