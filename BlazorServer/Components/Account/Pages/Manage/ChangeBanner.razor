@@ -32,7 +32,7 @@
                 class="form-select flex-grow-1 py-3 mb-3"
                 @bind-Value="Input.BannerUrl"
             >
-                @if (!allowCustomBanners) 
+                @if (allowCustomBanners) 
                 {
                     <option>
                         Custom
@@ -47,7 +47,7 @@
                 }
             </InputSelect>
 
-            @if (!allowCustomBanners) 
+            @if (allowCustomBanners) 
             {
                 <div class="form-floating mb-3">
                     <InputText @bind-Value="Input.CustomUrl" id="customBanner" class="form-control" placeholder="images.com/img" />
