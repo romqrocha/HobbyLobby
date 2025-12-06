@@ -1,0 +1,96 @@
+@page "/admin"
+@attribute [Authorize]
+@using BlazorServer.Components.Account
+@using BlazorServer.Data
+@using BlazorServer.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity.EntityFrameworkCore
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Claims
+
+@inject HobbyService hobbyService
+@inject IUserService userService
+@inject ApplicationDbContext Db
+@inject IdentityUserAccessor UserAccessor
+@inject AuthenticationStateProvider authProvider
+@inject NavigationManager navManager
+
+<PageTitle>HobbyEditor</PageTitle>
+
+<div class="col-xl-6">
+    <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
+        <div class="form-floating mb-3">
+            <InputText @bind-Value="Input.Username" id="Input.Username" class="form-control" placeholder="Verify someone" />
+            <label for="Input.Username" class="form-label">Username</label>
+            <ValidationMessage For="() => Input.Username" class="text-danger" />
+        </div>
+        <button type="submit" class="w-100 btn btn-lg btn-primary mb-3">Verify this user</button>
+    </EditForm>
+</div>
+
+
+@code {
+
+    private ApplicationUser? dbUser = null;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    private async Task SaveChanges()
+    {
+        if (dbUser == null)
+        {
+            return;
+        }
+
+        await Db.SaveChangesAsync();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        dbUser = await userService.GetCurrentUser(authProvider, Db);
+
+        if (dbUser == null)
+        {
+            userService.RedirectToLogin(navManager);
+            return;
+        }
+
+        if (dbUser.UserName != "ro3") 
+        {
+            userService.RedirectToLogin(navManager);
+            return;
+        }
+
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        List<Action<ApplicationUser>> updateQueue = new();
+
+        if (Input?.Username == null) 
+        {
+            navManager.NavigateTo("/");
+            return;
+        }
+
+        ApplicationUser? otherUser = await userService.GetFromUsername(Db, Input.Username);
+
+        if (otherUser == null) 
+        {
+            navManager.NavigateTo("/");
+            return;
+        }
+
+        otherUser.BcitEmailIsVerified = true;
+
+        await SaveChanges();
+    }
+
+    private sealed class InputModel
+    {
+        public string? Username { get; set; }
+    }
+}
